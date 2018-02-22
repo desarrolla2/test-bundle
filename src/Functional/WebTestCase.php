@@ -38,10 +38,40 @@ abstract class WebTestCase extends BaseWebTestCase
     protected $requested = [];
 
     /**
+     * @param Client $client
+     * @param string $route
+     * @param array  $routeParams
+     * @param string $formName
+     * @param array  $formParams
+     */
+    protected function requestGetAndPost(
+        Client $client,
+        string $route,
+        array $routeParams = [],
+        string $formName = 'form',
+        array $formParams = []
+    ) {
+        $response = $this->requestAndAssertOkAndHtml(
+            $client,
+            'GET',
+            $route,
+            $routeParams
+        );
+        $token = $this->getCsrfTokenFromResponse($response, $formName);
+        $this->requestAndAssertRedirect(
+            $client,
+            'POST',
+            $route,
+            $routeParams,
+            [$formName => array_merge(['_token' => $token], $formParams)]
+        );
+    }
+
+    /**
      * @param Response $response
      * @param string   $isContained
      */
-    public function assertResponseContains(Response $response, string $isContained)
+    protected function assertResponseContains(Response $response, string $isContained)
     {
         $this->assertRegexp(sprintf('#%s#', preg_quote($isContained)), $response->getContent());
     }
@@ -51,7 +81,7 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param string   $contentType
      * @param string   $route
      */
-    public function assertResponseContentType(Response $response, string $contentType, string $route)
+    protected function assertResponseContentType(Response $response, string $contentType, string $route)
     {
         $this->assertSame(
             $contentType,
@@ -67,7 +97,7 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param array  $parameters
      * @return null|Response
      */
-    public function requestAndAssertNotFound(
+    protected function requestAndAssertNotFound(
         Client $client,
         string $method = 'GET',
         string $route,
@@ -86,13 +116,14 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param array  $parameters
      * @return null|Response
      */
-    public function requestAndAssertOk(
+    protected function requestAndAssertOk(
         Client $client,
         string $method = 'GET',
         string $route,
+        array $routeParameters = [],
         array $parameters = []
     ) {
-        $response = $this->request($client, $method, $route, $parameters);
+        $response = $this->request($client, $method, $route, $routeParameters, $parameters);
         $this->assertOk($response, $route);
 
         return $response;
@@ -105,13 +136,14 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param array  $parameters
      * @return null|Response
      */
-    public function requestAndAssertOkAndHtml(
+    protected function requestAndAssertOkAndHtml(
         Client $client,
         string $method = 'GET',
         string $route,
+        array $routeParameters = [],
         array $parameters = []
     ) {
-        $response = $this->requestAndAssertOk($client, $method, $route, $parameters);
+        $response = $this->requestAndAssertOk($client, $method, $route, $routeParameters, $parameters);
         $this->assertResponseIsHtml($response, $route);
 
         return $response;
@@ -124,7 +156,7 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param array  $parameters
      * @return null|Response
      */
-    public function requestAndAssertOkAndJson(
+    protected function requestAndAssertOkAndJson(
         Client $client,
         string $method = 'GET',
         string $route,
@@ -140,23 +172,21 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param Client $client
      * @param string $method
      * @param string $route
+     * @param array  $routeParameters
      * @param array  $parameters
      * @return null|Response
      */
-    public function requestAndAssertRedirect(
+    protected function requestAndAssertRedirect(
         Client $client,
         string $method = 'GET',
         string $route,
+        array $routeParameters = [],
         array $parameters = []
     ) {
-        $response = $this->request($client, $method, $route, $parameters);
+        $response = $this->request($client, $method, $route, $routeParameters, $parameters);
         $this->assertRedirect($response, $route);
 
         return $response;
-    }
-
-    public function setUp()
-    {
     }
 
     /**
@@ -285,6 +315,7 @@ abstract class WebTestCase extends BaseWebTestCase
         if (!$matches) {
             return '';
         }
+
         $regex = sprintf('#%s\[\_token\]\"\svalue\=\"#', $name);
 
         $match = preg_replace($regex, '', $matches[0]);
