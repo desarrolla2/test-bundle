@@ -14,6 +14,7 @@
 namespace Desarrolla2\TestBundle\Functional;
 
 use Desarrolla2\Cache\Cache;
+use Desarrolla2\TestBundle\Model\Key;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase as BaseWebTestCase;
 use Symfony\Component\BrowserKit\Cookie;
@@ -25,7 +26,7 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 /**
  * @coversNothing
  */
-class WebTestCase extends BaseWebTestCase
+abstract class WebTestCase extends BaseWebTestCase
 {
     /** @var Container */
     protected $container;
@@ -102,6 +103,7 @@ class WebTestCase extends BaseWebTestCase
      * @param string $method
      * @param string $route
      * @param array  $parameters
+     * @return null|Response
      */
     public function requestAndAssertOkAndHtml(
         Client $client,
@@ -111,6 +113,8 @@ class WebTestCase extends BaseWebTestCase
     ) {
         $response = $this->requestAndAssertOk($client, $method, $route, $parameters);
         $this->assertResponseIsHtml($response, $route);
+
+        return $response;
     }
 
     /**
@@ -118,6 +122,7 @@ class WebTestCase extends BaseWebTestCase
      * @param string $method
      * @param string $route
      * @param array  $parameters
+     * @return null|Response
      */
     public function requestAndAssertOkAndJson(
         Client $client,
@@ -127,6 +132,8 @@ class WebTestCase extends BaseWebTestCase
     ) {
         $response = $this->requestAndAssertOk($client, $method, $route, $parameters);
         $this->assertResponseIsJson($response, $route);
+
+        return $response;
     }
 
     /**
@@ -242,7 +249,7 @@ class WebTestCase extends BaseWebTestCase
      */
     protected static function getCacheKey(): string
     {
-        return 'executed_routes';
+        return Key::CACHE;
     }
 
     /**
@@ -267,6 +274,25 @@ class WebTestCase extends BaseWebTestCase
     }
 
     /**
+     * @param Response $response
+     * @param string   $name
+     * @return bool|string
+     */
+    protected function getCsrfTokenFromResponse(Response $response, $name = 'form')
+    {
+        $regex = sprintf('#%s\[\_token\]\"\svalue\=\"[\w\d\-]+\"#', $name);
+        preg_match($regex, $response->getContent(), $matches);
+        if (!$matches) {
+            return '';
+        }
+        $regex = sprintf('#%s\[\_token\]\"\svalue\=\"#', $name);
+
+        $match = preg_replace($regex, '', $matches[0]);
+
+        return substr($match, 0, strlen($match) - 1);
+    }
+
+    /**
      * @return \Doctrine\ORM\EntityManager|object
      */
     protected function getEntityManager()
@@ -284,6 +310,20 @@ class WebTestCase extends BaseWebTestCase
         require_once __DIR__.'/../../../../../app/AppKernel.php';
 
         return 'AppKernel';
+    }
+
+    /**
+     * @param string $entityName
+     * @return null|object
+     */
+    protected function getLastUpdatedEntity(string $entityName)
+    {
+        $em = $this->getEntityManager();
+
+        return $em->getRepository($entityName)->findOneBy(
+            [],
+            ['updatedAt' => 'DESC']
+        );
     }
 
     /**
@@ -310,6 +350,18 @@ class WebTestCase extends BaseWebTestCase
     }
 
     /**
+     * @return User
+     */
+    protected function getUser()
+    {
+        $em = self::getContainer()->get('doctrine.orm.entity_manager');
+
+        return $em->getRepository($this->getUserEntity())->findOneBy(['email' => 'daniel@devtia.com']);
+    }
+
+    abstract protected function getUserEntity();
+
+    /**
      * @param Client $client
      * @param string $username
      * @param array  $roles
@@ -318,9 +370,7 @@ class WebTestCase extends BaseWebTestCase
     {
         $container = $this->getContainer();
         $session = $container->get('session');
-        $em = $container->get('doctrine.orm.entity_manager');
-
-        $user = $em->getRepository('CoreBundle:User')->findOneBy(['email' => $username]);
+        $user = $this->getUser();
         $firewallContext = 'main';
 
         $token = new UsernamePasswordToken($user, null, $firewallContext, $roles);

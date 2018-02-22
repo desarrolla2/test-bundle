@@ -13,12 +13,13 @@
 
 namespace Desarrolla2\TestBundle\Command\PhpUnit;
 
-use CoreBundle\Command\AbstractCommand;
 use Desarrolla2\Cache\Cache;
+use Desarrolla2\TestBundle\Model\Key;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class StatisticsCommand extends AbstractCommand
+class StatisticsCommand extends ContainerAwareCommand
 {
     protected function configure()
     {
@@ -69,9 +70,19 @@ class StatisticsCommand extends AbstractCommand
     }
 
     /**
+     * @param $serviceName
+     *
+     * @return object
+     */
+    private function get($serviceName)
+    {
+        return $this->getContainer()->get($serviceName);
+    }
+
+    /**
      * @return Cache
      */
-    protected function getCache()
+    private function getCache()
     {
         return $this->get('desarrolla2.cache');
     }
@@ -79,9 +90,9 @@ class StatisticsCommand extends AbstractCommand
     /**
      * @return string
      */
-    protected function getCacheKey(): string
+    private function getCacheKey(): string
     {
-        return 'test_executed_routes';
+        return Key::CACHE;
     }
 
     /**
@@ -89,7 +100,7 @@ class StatisticsCommand extends AbstractCommand
      *
      * @return string
      */
-    protected function getColor($testedPercentage)
+    private function getColor($testedPercentage)
     {
         if ($testedPercentage > 75) {
             return 'green';
@@ -104,7 +115,7 @@ class StatisticsCommand extends AbstractCommand
     /**
      * @return array
      */
-    protected function getRequested()
+    private function getRequested()
     {
         $requested = $this->getCache()->get($this->getCacheKey());
         if (!$requested) {
@@ -117,7 +128,7 @@ class StatisticsCommand extends AbstractCommand
     /**
      * @return array
      */
-    protected function getRoutes(): array
+    private function getRoutes(): array
     {
         $router = $this->get('router');
         $collection = $router->getRouteCollection();
