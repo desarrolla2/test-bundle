@@ -352,11 +352,11 @@ abstract class WebTestCase extends BaseWebTestCase
     /**
      * @return User
      */
-    protected function getUser()
+    protected function getUser(string $email)
     {
         $em = self::getContainer()->get('doctrine.orm.entity_manager');
 
-        return $em->getRepository($this->getUserEntity())->findOneBy(['email' => 'daniel@devtia.com']);
+        return $em->getRepository($this->getUserEntity())->findOneBy(['email' => $email]);
     }
 
     abstract protected function getUserEntity();
@@ -366,11 +366,11 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param string $username
      * @param array  $roles
      */
-    protected function logIn(Client $client, string $username, array $roles = [])
+    protected function logIn(Client $client, string $email, array $roles = [])
     {
         $container = $this->getContainer();
         $session = $container->get('session');
-        $user = $this->getUser();
+        $user = $this->getUser($email);
         $firewallContext = 'main';
 
         $token = new UsernamePasswordToken($user, null, $firewallContext, $roles);
