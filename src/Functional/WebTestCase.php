@@ -38,158 +38,6 @@ abstract class WebTestCase extends BaseWebTestCase
     protected $requested = [];
 
     /**
-     * @param Client $client
-     * @param string $route
-     * @param array  $routeParams
-     * @param string $formName
-     * @param array  $formParams
-     */
-    protected function requestGetAndPost(
-        Client $client,
-        string $route,
-        array $routeParams = [],
-        string $formName = 'form',
-        array $formParams = []
-    ) {
-        $response = $this->requestAndAssertOkAndHtml(
-            $client,
-            'GET',
-            $route,
-            $routeParams
-        );
-        $token = $this->getCsrfTokenFromResponse($response, $formName);
-        $this->requestAndAssertRedirect(
-            $client,
-            'POST',
-            $route,
-            $routeParams,
-            [$formName => array_merge(['_token' => $token], $formParams)]
-        );
-    }
-
-    /**
-     * @param Response $response
-     * @param string   $isContained
-     */
-    protected function assertResponseContains(Response $response, string $isContained)
-    {
-        $this->assertRegexp(sprintf('#%s#', preg_quote($isContained)), $response->getContent());
-    }
-
-    /**
-     * @param Response $response
-     * @param string   $contentType
-     * @param string   $route
-     */
-    protected function assertResponseContentType(Response $response, string $contentType, string $route)
-    {
-        $this->assertSame(
-            $contentType,
-            $response->headers->get('Content-Type'),
-            sprintf('Failed on route "%s".', $route)
-        );
-    }
-
-    /**
-     * @param Client $client
-     * @param string $method
-     * @param string $route
-     * @param array  $parameters
-     * @return null|Response
-     */
-    protected function requestAndAssertNotFound(
-        Client $client,
-        string $method = 'GET',
-        string $route,
-        array $parameters = []
-    ) {
-        $response = $this->request($client, $method, $route, $parameters);
-        $this->assertStatus($response, Response::HTTP_NOT_FOUND, $route);
-
-        return $response;
-    }
-
-    /**
-     * @param Client $client
-     * @param string $method
-     * @param string $route
-     * @param array  $parameters
-     * @return null|Response
-     */
-    protected function requestAndAssertOk(
-        Client $client,
-        string $method = 'GET',
-        string $route,
-        array $routeParameters = [],
-        array $parameters = []
-    ) {
-        $response = $this->request($client, $method, $route, $routeParameters, $parameters);
-        $this->assertOk($response, $route);
-
-        return $response;
-    }
-
-    /**
-     * @param Client $client
-     * @param string $method
-     * @param string $route
-     * @param array  $parameters
-     * @return null|Response
-     */
-    protected function requestAndAssertOkAndHtml(
-        Client $client,
-        string $method = 'GET',
-        string $route,
-        array $routeParameters = [],
-        array $parameters = []
-    ) {
-        $response = $this->requestAndAssertOk($client, $method, $route, $routeParameters, $parameters);
-        $this->assertResponseIsHtml($response, $route);
-
-        return $response;
-    }
-
-    /**
-     * @param Client $client
-     * @param string $method
-     * @param string $route
-     * @param array  $parameters
-     * @return null|Response
-     */
-    protected function requestAndAssertOkAndJson(
-        Client $client,
-        string $method = 'GET',
-        string $route,
-        array $parameters = []
-    ) {
-        $response = $this->requestAndAssertOk($client, $method, $route, $parameters);
-        $this->assertResponseIsJson($response, $route);
-
-        return $response;
-    }
-
-    /**
-     * @param Client $client
-     * @param string $method
-     * @param string $route
-     * @param array  $routeParameters
-     * @param array  $parameters
-     * @return null|Response
-     */
-    protected function requestAndAssertRedirect(
-        Client $client,
-        string $method = 'GET',
-        string $route,
-        array $routeParameters = [],
-        array $parameters = []
-    ) {
-        $response = $this->request($client, $method, $route, $routeParameters, $parameters);
-        $this->assertRedirect($response, $route);
-
-        return $response;
-    }
-
-    /**
      * @param string $method
      * @param string $route
      * @param        $path
@@ -225,6 +73,29 @@ abstract class WebTestCase extends BaseWebTestCase
     protected function assertRedirect(Response $response, string $route)
     {
         $this->assertStatus($response, Response::HTTP_FOUND, $route);
+    }
+
+    /**
+     * @param Response $response
+     * @param string   $isContained
+     */
+    protected function assertResponseContains(Response $response, string $isContained)
+    {
+        $this->assertRegexp(sprintf('#%s#', preg_quote($isContained)), $response->getContent());
+    }
+
+    /**
+     * @param Response $response
+     * @param string   $contentType
+     * @param string   $route
+     */
+    protected function assertResponseContentType(Response $response, string $contentType, string $route)
+    {
+        $this->assertSame(
+            $contentType,
+            $response->headers->get('Content-Type'),
+            sprintf('Failed on route "%s".', $route)
+        );
     }
 
     /**
@@ -433,6 +304,156 @@ abstract class WebTestCase extends BaseWebTestCase
         $response = $client->getResponse();
 
         return $response;
+    }
+
+    /**
+     * @param Client $client
+     * @param string $method
+     * @param string $route
+     * @param array  $parameters
+     * @return null|Response
+     */
+    protected function requestAndAssertNotFound(
+        Client $client,
+        string $method = 'GET',
+        string $route,
+        array $parameters = []
+    ) {
+        $response = $this->request($client, $method, $route, $parameters);
+        $this->assertStatus($response, Response::HTTP_NOT_FOUND, $route);
+
+        return $response;
+    }
+
+    /**
+     * @param Client $client
+     * @param string $method
+     * @param string $route
+     * @param array  $parameters
+     * @return null|Response
+     */
+    protected function requestAndAssertOk(
+        Client $client,
+        string $method = 'GET',
+        string $route,
+        array $routeParameters = [],
+        array $parameters = []
+    ) {
+        $response = $this->request($client, $method, $route, $routeParameters, $parameters);
+        $this->assertOk($response, $route);
+
+        return $response;
+    }
+
+    /**
+     * @param Client $client
+     * @param string $method
+     * @param string $route
+     * @param array  $parameters
+     * @return null|Response
+     */
+    protected function requestAndAssertOkAndHtml(
+        Client $client,
+        string $method = 'GET',
+        string $route,
+        array $routeParameters = [],
+        array $parameters = []
+    ) {
+        $response = $this->requestAndAssertOk($client, $method, $route, $routeParameters, $parameters);
+        $this->assertResponseIsHtml($response, $route);
+
+        return $response;
+    }
+
+    /**
+     * @param Client $client
+     * @param string $method
+     * @param string $route
+     * @param array  $parameters
+     * @return null|Response
+     */
+    protected function requestAndAssertOkAndJson(
+        Client $client,
+        string $method = 'GET',
+        string $route,
+        array $parameters = []
+    ) {
+        $response = $this->requestAndAssertOk($client, $method, $route, $parameters);
+        $this->assertResponseIsJson($response, $route);
+
+        return $response;
+    }
+
+    /**
+     * @param Client $client
+     * @param string $method
+     * @param string $route
+     * @param array  $routeParameters
+     * @param array  $parameters
+     * @return null|Response
+     */
+    protected function requestAndAssertRedirect(
+        Client $client,
+        string $method = 'GET',
+        string $route,
+        array $routeParameters = [],
+        array $parameters = []
+    ) {
+        $response = $this->request($client, $method, $route, $routeParameters, $parameters);
+        $this->assertRedirect($response, $route);
+
+        return $response;
+    }
+
+    /**
+     * @param Client $client
+     * @param string $route
+     * @param array  $routeParams
+     * @param string $formName
+     * @param array  $formParams
+     */
+    protected function requestGetAndPost(
+        Client $client,
+        string $route,
+        array $routeParams = [],
+        string $formName = 'form',
+        array $formParams = []
+    ) {
+        $response = $this->requestAndAssertOkAndHtml(
+            $client,
+            'GET',
+            $route,
+            $routeParams
+        );
+        $token = $this->getCsrfTokenFromResponse($response, $formName);
+
+
+        return $this->request(
+            $client,
+            'POST',
+            $route,
+            $routeParams,
+            [$formName => array_merge(['_token' => $token], $formParams)]
+        );
+    }
+
+    /**
+     * @param Client $client
+     * @param string $route
+     * @param array  $routeParams
+     * @param string $formName
+     * @param array  $formParams
+     */
+    protected function requestGetAndPostAndAssertRedirect(
+        Client $client,
+        string $route,
+        array $routeParams = [],
+        string $formName = 'form',
+        array $formParams = []
+    ) {
+        $response = $this->requestGetAndPost($client, $route, $routeParams, $formName, $formParams);
+        file_put_contents('/home/daniel/Projects/crm.she/salida.html', $response->getContent());
+        $this->assertRedirect($response, $route);
     }
 
     protected function tearDown()
