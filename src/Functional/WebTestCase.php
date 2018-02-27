@@ -264,6 +264,13 @@ abstract class WebTestCase extends BaseWebTestCase
     abstract protected function getUserEntity();
 
     /**
+     * @param Response $response
+     */
+    protected function handleResponse(Response $response)
+    {
+    }
+
+    /**
      * @param Client $client
      * @param string $username
      * @param array  $roles
@@ -302,6 +309,7 @@ abstract class WebTestCase extends BaseWebTestCase
         $this->addToRequested($method, $route, $path);
         $client->request($method, $path, $requestParameters);
         $response = $client->getResponse();
+        $this->handleResponse($response);
 
         return $response;
     }
