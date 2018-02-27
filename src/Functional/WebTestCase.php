@@ -452,7 +452,6 @@ abstract class WebTestCase extends BaseWebTestCase
         array $formParams = []
     ) {
         $response = $this->requestGetAndPost($client, $route, $routeParams, $formName, $formParams);
-        file_put_contents('/home/daniel/Projects/crm.she/salida.html', $response->getContent());
         $this->assertRedirect($response, $route);
     }
 
