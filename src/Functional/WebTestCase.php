@@ -20,7 +20,6 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase as BaseWebTestCase;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
@@ -292,6 +291,17 @@ abstract class WebTestCase extends BaseWebTestCase
 
         $cookie = new Cookie($session->getName(), $session->getId());
         $client->getCookieJar()->set($cookie);
+    }
+
+    /**
+     * @param $entity
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    protected function persist($entity)
+    {
+        $em = $this->getEntityManager();
+        $em->persist($entity);
+        $em->flush();
     }
 
     /**
