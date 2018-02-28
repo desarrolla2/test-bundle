@@ -20,6 +20,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase as BaseWebTestCase;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
@@ -265,9 +266,12 @@ abstract class WebTestCase extends BaseWebTestCase
 
     /**
      * @param Response $response
+     * @return bool|void
      */
     protected function handleResponse(Response $response)
     {
+        $directory = $this->getParameter('kernel.cache_dir');
+        file_put_contents(sprintf('%s/output.html', $directory), $response->getContent());
     }
 
     /**
