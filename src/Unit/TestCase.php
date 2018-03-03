@@ -14,15 +14,32 @@
 namespace Desarrolla2\TestBundle\Unit;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
+use Prophecy\Prophet;
 
 class TestCase extends BaseTestCase
 {
-    public function setUp()
+    /**
+     * @var Prophet
+     */
+    private $prophet;
+
+    /**
+     * @return Prophet
+     */
+    protected function getProphet()
     {
+        if (!$this->prophet) {
+            $this->prophet = new \Prophecy\Prophet();
+        }
+
+        return $this->prophet;
     }
 
     protected function tearDown()
     {
+        if ($this->prophet) {
+            $this->prophet = new \Prophecy\Prophet();
+        }
         $reflection = new \ReflectionObject($this);
         foreach ($reflection->getProperties() as $prop) {
             if (!$prop->isStatic() && 0 !== strpos($prop->getDeclaringClass()->getName(), 'PHPUnit_')) {
