@@ -40,21 +40,21 @@ abstract class WebTestCase extends BaseWebTestCase
     /**
      * @param string $method
      * @param string $route
-     * @param        $path
+     * @param string $path
      */
-    protected function addToRequested(string $method, string $route, $path)
+    protected function addToRequested(string $method, string $route, string $path)
     {
         $cache = $this->getCache();
         $requested = $cache->get($this->getCacheKey());
         if (!$requested) {
             $requested = [];
         }
-        if (!array_key_exists($route, $requested)) {
-            $requested[$route] = [];
+        $key = sprintf('%s%s', $method, $route);
+        if (!array_key_exists($key, $requested)) {
+            $requested[$key] = ['method' => $method, 'route' => $route, 'paths' => []];
         }
-        $hash = sprintf('%s_%s', $method, $path);
-        $requested[$route][$hash] = ['method' => $method, 'route' => $route, 'path' => $path];
-        $cache->set($this->getCacheKey(), $requested, 60);
+        $requested[$key]['paths'][] = $path;
+        $cache->set($this->getCacheKey(), $requested, $this->getCacheTtl());
     }
 
     /**
@@ -151,6 +151,14 @@ abstract class WebTestCase extends BaseWebTestCase
     protected static function getCacheKey(): string
     {
         return Key::CACHE;
+    }
+
+    /**
+     * @return float|int
+     */
+    protected function getCacheTtl()
+    {
+        return 60;
     }
 
     /**
@@ -448,7 +456,6 @@ abstract class WebTestCase extends BaseWebTestCase
             $routeParams
         );
         $token = $this->getCsrfTokenFromResponse($response, $formName);
-
 
         return $this->request(
             $client,

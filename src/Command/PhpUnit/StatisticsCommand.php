@@ -16,8 +16,10 @@ namespace Desarrolla2\TestBundle\Command\PhpUnit;
 use Desarrolla2\Cache\Cache;
 use Desarrolla2\TestBundle\Model\Key;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Routing\Route;
 
 class StatisticsCommand extends ContainerAwareCommand
 {
@@ -36,37 +38,54 @@ class StatisticsCommand extends ContainerAwareCommand
         $routes = $this->getRoutes();
         $requested = $this->getRequested();
         $output->writeln(['', '<info>Tested routes</info>', '']);
-        $tested = 0;
+        $tested = $requests = 0;
         $total = count($routes);
-        foreach ($requested as $items) {
-            foreach ($items as $item) {
-                $key = array_search($item['route'], $routes, true);
-                if (false !== $key) {
-                    unset($routes[$key]);
-                    ++$tested;
-                }
-                $output->writeln(
-                    sprintf('%04d. <info>%s</info> %s %s', $tested, $item['method'], $item['route'], $item['path'])
-                );
+        foreach ($requested as $route) {
+            $key = $this->getHash($route['method'], $route['route']);
+            if (!array_key_exists($key, $routes)) {
+                continue;
             }
+            $output->writeln(sprintf('%04d. <info>%s</info> %s', $tested, $route['method'], $route['route']));
+            foreach ($route['paths'] as $path) {
+                $output->writeln(sprintf('   - %s', $path));
+                ++$requests;
+            }
+            unset($routes[$key]);
+            ++$tested;
         }
         $output->writeln(['', '<error>Pending routes</error>', '']);
         $pending = 0;
         foreach ($routes as $route) {
             ++$pending;
-            $output->writeln(sprintf('%04d. %s', $pending + $tested, $route));
+            $output->writeln(
+                sprintf('%04d. <info>%s</info> %s', $pending + $tested, $route['method'], $route['route'])
+            );
         }
-        $testedPercentage = round(100 * $tested / $total, 2);
+        $testedPercentage = 100 * $tested / $total;
         $pendingPercentage = 100 - $testedPercentage;
         $color = $this->getColor($testedPercentage);
-        $output->writeln(
-            [
-                '',
-                sprintf('Tested:  %d routes <fg=white;bg=%s>(%s%%)</>', $tested, $color, $testedPercentage),
-                sprintf('Pending: %d routes <fg=white;bg=%s>(%s%%)</>', $pending, $color, $pendingPercentage),
-                '',
-            ]
-        );
+
+        $output->writeln(['', '',]);
+
+        $table = new Table($output);
+        $table
+            ->setHeaders(['name', 'number', 'percentage'])
+            ->setRows(
+                [
+                    ['Total requests', number_format($requests), ''],
+                    [
+                        'Tested routes',
+                        number_format($tested),
+                        sprintf('<fg=white;bg=%s>(%s%%)</>', $color, number_format($testedPercentage, 2)),
+                    ],
+                    [
+                        'Pending routes',
+                        number_format($pending),
+                        sprintf('<fg=white;bg=%s>(%s%%)</>', $color, number_format($pendingPercentage, 2)),
+                    ],
+                ]
+            );
+        $table->render();
     }
 
     /**
@@ -113,6 +132,24 @@ class StatisticsCommand extends ContainerAwareCommand
     }
 
     /**
+     * @param string $method
+     * @param string $routeName
+     * @return string
+     */
+    private function getHash(string $method, string $routeName): string
+    {
+        return sprintf('%s%s', $routeName, $method);
+    }
+
+    /**
+     * @return array
+     */
+    private function getIgnoredRoutePatterns()
+    {
+        return ['sonata_admin_[\w\_]', 'liip_imagine_[\w\_]', 'fos_user_security_check'];
+    }
+
+    /**
      * @return array
      */
     private function getRequested()
@@ -121,6 +158,8 @@ class StatisticsCommand extends ContainerAwareCommand
         if (!$requested) {
             return [];
         }
+
+        ksort($requested);
 
         return $requested;
     }
@@ -133,11 +172,41 @@ class StatisticsCommand extends ContainerAwareCommand
         $router = $this->get('router');
         $collection = $router->getRouteCollection();
         $routes = [];
+        /**
+         * @var string $routeName
+         * @var Route  $route
+         */
         foreach ($collection as $routeName => $route) {
-            $routes[] = $routeName;
+            if ($this->shouldRouteNameBeIgnored($routeName)) {
+                continue;
+            }
+            $methods = $route->getMethods();
+            if (!count($methods)) {
+                $methods = ['GET', 'POST'];
+            }
+            foreach ($methods as $method) {
+                $routes[$this->getHash($method, $routeName)] = ['route' => $routeName, 'method' => $method];
+            }
         }
-        sort($routes);
+
+        ksort($routes);
 
         return $routes;
+    }
+
+    /**
+     * @param $routeName
+     * @return bool
+     */
+    private function shouldRouteNameBeIgnored($routeName): bool
+    {
+        $ignoredRoutePatterns = $this->getIgnoredRoutePatterns();
+        foreach ($ignoredRoutePatterns as $pattern) {
+            if (preg_match(sprintf('#%s#', $pattern), $routeName)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
