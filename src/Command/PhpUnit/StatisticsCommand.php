@@ -146,7 +146,7 @@ class StatisticsCommand extends ContainerAwareCommand
      */
     private function getIgnoredRoutePatterns()
     {
-        return ['sonata_admin_[\w\_]', 'liip_imagine_[\w\_]', 'fos_user_security_check'];
+        return ['sonata_admin_[\w\_]', 'liip_imagine_[\w\_]', 'fos_user_[\w\_]'];
     }
 
     /**
