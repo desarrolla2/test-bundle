@@ -86,6 +86,8 @@ class StatisticsCommand extends ContainerAwareCommand
                 ]
             );
         $table->render();
+
+        $output->writeln(['', '',]);
     }
 
     /**
