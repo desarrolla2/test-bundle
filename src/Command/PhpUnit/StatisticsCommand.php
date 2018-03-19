@@ -41,17 +41,17 @@ class StatisticsCommand extends ContainerAwareCommand
         $tested = $requests = 0;
         $total = count($routes);
         foreach ($requested as $route) {
+            ++$tested;
             $key = $this->getHash($route['method'], $route['route']);
             if (!array_key_exists($key, $routes)) {
                 continue;
             }
             $output->writeln(sprintf('%04d. <info>%s</info> %s', $tested, $route['method'], $route['route']));
             foreach ($route['paths'] as $path) {
-                $output->writeln(sprintf('   - %s', $path));
                 ++$requests;
+                $output->writeln(sprintf('   - %s', $path));
             }
             unset($routes[$key]);
-            ++$tested;
         }
         $output->writeln(['', '<error>Pending routes</error>', '']);
         $pending = 0;
@@ -73,6 +73,7 @@ class StatisticsCommand extends ContainerAwareCommand
             ->setRows(
                 [
                     ['Total requests', number_format($requests), ''],
+                    ['Total routes', number_format($tested + $pending), ''],
                     [
                         'Tested routes',
                         number_format($tested),
