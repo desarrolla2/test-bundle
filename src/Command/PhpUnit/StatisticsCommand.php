@@ -127,7 +127,7 @@ class StatisticsCommand extends ContainerAwareCommand
             return 'green';
         }
         if ($testedPercentage > 50) {
-            return 'yelow';
+            return 'yellow';
         }
 
         return 'red';
