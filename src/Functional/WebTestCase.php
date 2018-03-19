@@ -203,6 +203,14 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
+     * @return string
+     */
+    protected function getDefaultName(): string
+    {
+        return 'created by phpunit';
+    }
+
+    /**
      * @return \Doctrine\ORM\EntityManager|object
      */
     protected function getEntityManager()
