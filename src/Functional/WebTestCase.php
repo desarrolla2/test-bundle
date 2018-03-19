@@ -37,6 +37,8 @@ abstract class WebTestCase extends BaseWebTestCase
     /** @var array */
     protected $requested = [];
 
+    private $lastest = ['route' => null, 'method' => null, 'path' => null];
+
     /**
      * @param string $method
      * @param string $route
@@ -55,24 +57,24 @@ abstract class WebTestCase extends BaseWebTestCase
         }
         $requested[$key]['paths'][] = $path;
         $cache->set($this->getCacheKey(), $requested, $this->getCacheTtl());
+
+        $this->lastest = ['route' => $route, 'method' => $method, 'path' => $path];
     }
 
     /**
      * @param Response $response
-     * @param string   $route
      */
-    protected function assertOk(Response $response, string $route)
+    protected function assertOk(Response $response)
     {
-        $this->assertStatus($response, Response::HTTP_OK, $route);
+        $this->assertStatus($response, Response::HTTP_OK);
     }
 
     /**
      * @param Response $response
-     * @param string   $route
      */
-    protected function assertRedirect(Response $response, string $route)
+    protected function assertRedirect(Response $response)
     {
-        $this->assertStatus($response, Response::HTTP_FOUND, $route);
+        $this->assertStatus($response, Response::HTTP_FOUND);
     }
 
     /**
@@ -87,43 +89,39 @@ abstract class WebTestCase extends BaseWebTestCase
     /**
      * @param Response $response
      * @param string   $contentType
-     * @param string   $route
      */
-    protected function assertResponseContentType(Response $response, string $contentType, string $route)
+    protected function assertResponseContentType(Response $response, string $contentType)
     {
         $this->assertSame(
             $contentType,
             $response->headers->get('Content-Type'),
-            sprintf('Failed on route "%s".', $route)
+            $this->getFailedMessage()
         );
     }
 
     /**
      * @param Response $response
-     * @param string   $route
      */
-    protected function assertResponseIsHtml(Response $response, string $route)
+    protected function assertResponseIsHtml(Response $response)
     {
-        $this->assertResponseContentType($response, 'text/html; charset=UTF-8', $route);
+        $this->assertResponseContentType($response, 'text/html; charset=UTF-8');
     }
 
     /**
      * @param Response $response
-     * @param string   $route
      */
-    protected function assertResponseIsJson(Response $response, string $route)
+    protected function assertResponseIsJson(Response $response)
     {
-        $this->assertResponseContentType($response, 'application/json', $route);
+        $this->assertResponseContentType($response, 'application/json');
     }
 
     /**
      * @param Response $response
      * @param int      $status
-     * @param string   $route
      */
-    protected function assertStatus(Response $response, int $status, string $route)
+    protected function assertStatus(Response $response, int $status)
     {
-        $this->assertSame($status, $response->getStatusCode(), sprintf('Failed on route "%s".', $route));
+        $this->assertSame($status, $response->getStatusCode(), $this->getFailedMessage());
     }
 
     /**
@@ -187,19 +185,21 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param string   $name
      * @return bool|string
      */
-    protected function getCsrfTokenFromResponse(Response $response, $name = 'form')
+    protected function getCsrfTokenValueFromResponse(Response $response, $name = 'form')
     {
-        $regex = sprintf('#%s\[\_token\]\"\svalue\=\"[\w\d\-]+\"#', $name);
-        preg_match($regex, $response->getContent(), $matches);
-        if (!$matches) {
+        $regex = sprintf('#%s\[\_token\]\"[\s\w\=\-\"]+value\=\"[\w\d\-]+\"#', $name);
+        preg_match($regex, $response->getContent(), $match1);
+        if (!$match1) {
             return '';
         }
 
-        $regex = sprintf('#%s\[\_token\]\"\svalue\=\"#', $name);
+        $regex = '#value\=\"[\w\d\-]+\"#';
+        preg_match($regex, $match1[0], $match2);
+        if (!$match2) {
+            return '';
+        }
 
-        $match = preg_replace($regex, '', $matches[0]);
-
-        return substr($match, 0, strlen($match) - 1);
+        return str_replace(['value=', '"'], ['', ''], $match2[0]);
     }
 
     /**
@@ -210,6 +210,39 @@ abstract class WebTestCase extends BaseWebTestCase
         $container = $this->getContainer();
 
         return $container->get('doctrine.orm.entity_manager');
+    }
+
+    /**
+     * @return string
+     */
+    protected function getFailedMessage()
+    {
+        if (!is_array($this->lastest)) {
+            return 'failed';
+        }
+
+        return sprintf(
+            'failed executing "%s" "%s" with route "%s"',
+            $this->lastest['method'],
+            $this->lastest['path'],
+            $this->lastest['route']
+        );
+    }
+
+    /**
+     * @param Response $response
+     * @param string   $name
+     * @return bool|string
+     */
+    protected function getFormNameFromResponse(Response $response, $name = 'form')
+    {
+        $regex = sprintf('#\"[\w\d\-]+\[\_token\]#', $name);
+        preg_match($regex, $response->getContent(), $matches);
+        if (!$matches) {
+            return '';
+        }
+
+        return str_replace(['[_token]', '"'], ['', ''], $matches[0]);
     }
 
     /**
@@ -370,7 +403,7 @@ abstract class WebTestCase extends BaseWebTestCase
         array $parameters = []
     ) {
         $response = $this->request($client, $method, $route, $routeParameters, $parameters);
-        $this->assertOk($response, $route);
+        $this->assertOk($response);
 
         return $response;
     }
@@ -390,7 +423,7 @@ abstract class WebTestCase extends BaseWebTestCase
         array $parameters = []
     ) {
         $response = $this->requestAndAssertOk($client, $method, $route, $routeParameters, $parameters);
-        $this->assertResponseIsHtml($response, $route);
+        $this->assertResponseIsHtml($response);
 
         return $response;
     }
@@ -409,7 +442,7 @@ abstract class WebTestCase extends BaseWebTestCase
         array $parameters = []
     ) {
         $response = $this->requestAndAssertOk($client, $method, $route, $parameters);
-        $this->assertResponseIsJson($response, $route);
+        $this->assertResponseIsJson($response);
 
         return $response;
     }
@@ -430,7 +463,7 @@ abstract class WebTestCase extends BaseWebTestCase
         array $parameters = []
     ) {
         $response = $this->request($client, $method, $route, $routeParameters, $parameters);
-        $this->assertRedirect($response, $route);
+        $this->assertRedirect($response);
 
         return $response;
     }
@@ -455,7 +488,10 @@ abstract class WebTestCase extends BaseWebTestCase
             $route,
             $routeParams
         );
-        $token = $this->getCsrfTokenFromResponse($response, $formName);
+        if ($formName == '') {
+            $formName = $this->getFormNameFromResponse($response);
+        }
+        $token = $this->getCsrfTokenValueFromResponse($response, $formName);
 
         return $this->request(
             $client,
@@ -481,7 +517,7 @@ abstract class WebTestCase extends BaseWebTestCase
         array $formParams = []
     ) {
         $response = $this->requestGetAndPost($client, $route, $routeParams, $formName, $formParams);
-        $this->assertRedirect($response, $route);
+        $this->assertRedirect($response);
     }
 
     protected function tearDown()
