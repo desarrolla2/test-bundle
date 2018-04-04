@@ -29,7 +29,7 @@ class StatisticsCommand extends ContainerAwareCommand
     }
 
     /**
-     * @param InputInterface  $input
+     * @param InputInterface $input
      * @param OutputInterface $output
      * @return int|null|void
      */
@@ -149,7 +149,13 @@ class StatisticsCommand extends ContainerAwareCommand
      */
     private function getIgnoredRoutePatterns()
     {
-        return ['sonata_admin_[\w\_]', 'liip_imagine_[\w\_]', 'fos_user_[\w\_]', '_twig_error_test'];
+        return [
+            'sonata_admin_[\w\_]',
+            'liip_imagine_[\w\_]',
+            'fos_user_[\w\_]',
+            'fos_js_routing_[\w\_]',
+            '_twig_error_test',
+        ];
     }
 
     /**
