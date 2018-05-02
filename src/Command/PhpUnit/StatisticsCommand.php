@@ -29,7 +29,7 @@ class StatisticsCommand extends ContainerAwareCommand
     }
 
     /**
-     * @param InputInterface $input
+     * @param InputInterface  $input
      * @param OutputInterface $output
      * @return int|null|void
      */
@@ -38,30 +38,30 @@ class StatisticsCommand extends ContainerAwareCommand
         $routes = $this->getRoutes();
         $requested = $this->getRequested();
         $output->writeln(['', '<info>Tested routes</info>', '']);
-        $tested = $requests = 0;
-        $total = count($routes);
+        $testedRoutes = $totalRequest = $pendingRoutes = 0;
+        $totalRoutes = count($routes);
         foreach ($requested as $route) {
-            ++$tested;
+            ++$testedRoutes;
             $key = $this->getHash($route['method'], $route['route']);
             if (!array_key_exists($key, $routes)) {
-                continue;
+                $totalRoutes++;
+                $routes[$key] = ['route' => $route['route'], 'method' => $route['method']];
             }
-            $output->writeln(sprintf('%04d. <info>%s</info> %s', $tested, $route['method'], $route['route']));
+            $output->writeln(sprintf('%04d. <info>%s</info> %s', $testedRoutes, $route['method'], $route['route']));
             foreach ($route['paths'] as $path) {
-                ++$requests;
+                ++$totalRequest;
                 $output->writeln(sprintf('   - %s', $path));
             }
             unset($routes[$key]);
         }
         $output->writeln(['', '<error>Pending routes</error>', '']);
-        $pending = 0;
         foreach ($routes as $route) {
-            ++$pending;
+            ++$pendingRoutes;
             $output->writeln(
-                sprintf('%04d. <info>%s</info> %s', $pending + $tested, $route['method'], $route['route'])
+                sprintf('%04d. <info>%s</info> %s', $pendingRoutes + $testedRoutes, $route['method'], $route['route'])
             );
         }
-        $testedPercentage = 100 * $tested / $total;
+        $testedPercentage = 100 * $testedRoutes / $totalRoutes;
         $pendingPercentage = 100 - $testedPercentage;
         $color = $this->getColor($testedPercentage);
 
@@ -72,16 +72,16 @@ class StatisticsCommand extends ContainerAwareCommand
             ->setHeaders(['name', 'number', 'percentage'])
             ->setRows(
                 [
-                    ['Total requests', number_format($requests), ''],
-                    ['Total routes', number_format($tested + $pending), ''],
+                    ['Total requests', number_format($totalRequest), ''],
+                    ['Total routes', number_format($totalRoutes), ''],
                     [
                         'Tested routes',
-                        number_format($tested),
+                        number_format($testedRoutes),
                         sprintf('<fg=white;bg=%s>(%s%%)</>', $color, number_format($testedPercentage, 2)),
                     ],
                     [
                         'Pending routes',
-                        number_format($pending),
+                        number_format($pendingRoutes),
                         sprintf('<fg=white;bg=%s>(%s%%)</>', $color, number_format($pendingPercentage, 2)),
                     ],
                 ]
@@ -191,7 +191,7 @@ class StatisticsCommand extends ContainerAwareCommand
             }
             $methods = $route->getMethods();
             if (!count($methods)) {
-                $methods = ['GET', 'POST'];
+                $methods = ['GET'];
             }
             foreach ($methods as $method) {
                 $routes[$this->getHash($method, $routeName)] = ['route' => $routeName, 'method' => $method];
