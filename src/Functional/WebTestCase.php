@@ -339,14 +339,14 @@ abstract class WebTestCase extends BaseWebTestCase
         $session = $container->get('session');
         $user = $this->getUser($email);
         $firewallContext = 'main';
-
-        ldd($user);
         $token = new UsernamePasswordToken($user, null, $firewallContext, $roles);
         $session->set('_security_'.$firewallContext, serialize($token));
         $session->save();
 
         $cookie = new Cookie($session->getName(), $session->getId());
         $client->getCookieJar()->set($cookie);
+
+        return $user;
     }
 
     /**
