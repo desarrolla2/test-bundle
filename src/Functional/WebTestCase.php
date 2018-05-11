@@ -306,8 +306,14 @@ abstract class WebTestCase extends BaseWebTestCase
     protected function getUser(string $email)
     {
         $em = self::getContainer()->get('doctrine.orm.entity_manager');
+        $user = $em->getRepository($this->getUserEntity())->findOneBy(['email' => $email]);
+        if (!$user) {
+            throw  new \InvalidArgumentException(
+                sprintf('"%s" with email "%s" not found', $this->getUserEntity(), $email)
+            );
+        }
 
-        return $em->getRepository($this->getUserEntity())->findOneBy(['email' => $email]);
+        return $user;
     }
 
     abstract protected function getUserEntity();
@@ -334,6 +340,7 @@ abstract class WebTestCase extends BaseWebTestCase
         $user = $this->getUser($email);
         $firewallContext = 'main';
 
+        ldd($user);
         $token = new UsernamePasswordToken($user, null, $firewallContext, $roles);
         $session->set('_security_'.$firewallContext, serialize($token));
         $session->save();
