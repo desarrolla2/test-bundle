@@ -1,0 +1,8 @@
+services:
+
+    desarrolla2_test.command_php_unit.statistics_command:
+        class: Desarrolla2\TestBundle\Command\PhpUnit\StatisticsCommand
+        calls:
+            - [setContainer, ['@service_container']]
+        tags:
+            - { name: console.command }
