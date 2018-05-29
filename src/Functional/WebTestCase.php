@@ -325,7 +325,7 @@ abstract class WebTestCase extends BaseWebTestCase
     protected function handleResponse(Response $response)
     {
         $directory = $this->getParameter('kernel.logs_dir');
-        file_put_contents(sprintf('%s/latest_output.html', $directory), $response->getContent());
+        file_put_contents(sprintf('%s/test.latest.ouput.html', $directory), $response->getContent());
     }
 
     /**
