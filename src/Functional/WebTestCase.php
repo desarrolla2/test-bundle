@@ -207,6 +207,7 @@ abstract class WebTestCase extends BaseWebTestCase
      */
     protected function getDefaultName(): string
     {
+        $limit = 75;
         $now = new \DateTime();
         $stack = debug_backtrace(0, 1);
         $first = reset($stack);
@@ -217,8 +218,8 @@ abstract class WebTestCase extends BaseWebTestCase
             $first['line'],
             $now->format('d/m/Y H:i')
         );
-        if (strlen($name) > 50) {
-            return substr(sprintf('...%s', $name), -47);
+        if (strlen($name) > $limit) {
+            return substr(sprintf('...%s', $name), -$limit);
         }
 
         return $name;
