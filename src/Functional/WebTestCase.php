@@ -207,11 +207,17 @@ abstract class WebTestCase extends BaseWebTestCase
      */
     protected function getDefaultName(): string
     {
+        $now = new \DateTime();
         $stack = debug_backtrace(0, 1);
         $first = reset($stack);
-        $name = sprintf('created by phpunit on "%s:%d"', $first['file'], $first['line']);
-        if (strlen($name) > 100) {
-            return substr(sprintf('...%s', $name), -97);
+        $name = sprintf(
+            'created by phpunit on "%s:%d" at "%s"',
+            $first['file'],
+            $first['line'],
+            $now->format('d/m/Y H:i')
+        );
+        if (strlen($name) > 50) {
+            return substr(sprintf('...%s', $name), -47);
         }
 
         return $name;
