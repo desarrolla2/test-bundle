@@ -209,8 +209,13 @@ abstract class WebTestCase extends BaseWebTestCase
     {
         $stack = debug_backtrace(0, 1);
         $first = reset($stack);
+        $name = sprintf('created by phpunit on "%s:%d"', $first['file'], $first['line']);
+        if (strlen($name) > 100) {
+            return substr(sprintf('...%s', $name), -97);
+        }
 
-        return sprintf('created by phpunit on "%s:%d"', $first['file'], $first['line']);
+        return $name;
+
     }
 
     /**
