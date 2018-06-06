@@ -207,7 +207,10 @@ abstract class WebTestCase extends BaseWebTestCase
      */
     protected function getDefaultName(): string
     {
-        return 'created by phpunit';
+        $stack = debug_backtrace(0, 1);
+        $first = reset($stack);
+
+        return sprintf('created by phpunit on "%s:%d"', $first['file'], $first['line']);
     }
 
     /**
