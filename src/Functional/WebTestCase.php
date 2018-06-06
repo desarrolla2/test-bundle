@@ -210,9 +210,10 @@ abstract class WebTestCase extends BaseWebTestCase
         $now = new \DateTime();
         $stack = debug_backtrace(0, 1);
         $first = reset($stack);
+        $file = str_replace($this->container->getParameter('kernel.project_dir'), '', $first['file']);
         $name = sprintf(
             'created by phpunit on "%s:%d" at "%s"',
-            $first['file'],
+            $file,
             $first['line'],
             $now->format('d/m/Y H:i')
         );
