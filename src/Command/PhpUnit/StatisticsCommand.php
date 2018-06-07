@@ -47,7 +47,21 @@ class StatisticsCommand extends ContainerAwareCommand
                 $totalRoutes++;
                 $routes[$key] = ['route' => $route['route'], 'method' => $route['method']];
             }
-            $output->writeln(sprintf('%04d. <info>%s</info> %s', $testedRoutes, $route['method'], $route['route']));
+            $count = count($route['paths']);
+            if (!$count) {
+                continue;
+            }
+            $average = round($route['time'] / $count, 3);
+            $output->writeln(
+                sprintf(
+                    '%04d. <info>%s</info> %s %dx%s',
+                    $testedRoutes,
+                    $route['method'],
+                    $route['route'],
+                    $count,
+                    (string)$average
+                )
+            );
             foreach ($route['paths'] as $path) {
                 ++$totalRequest;
                 $output->writeln(sprintf('   - %s', $path));

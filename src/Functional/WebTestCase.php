@@ -43,8 +43,9 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param string $method
      * @param string $route
      * @param string $path
+     * @param float  $time
      */
-    protected function addToRequested(string $method, string $route, string $path)
+    protected function addToRequested(string $method, string $route, string $path, float $time)
     {
         $cache = $this->getCache();
         $requested = $cache->get($this->getCacheKey());
@@ -53,8 +54,9 @@ abstract class WebTestCase extends BaseWebTestCase
         }
         $key = sprintf('%s%s', $method, $route);
         if (!array_key_exists($key, $requested)) {
-            $requested[$key] = ['method' => $method, 'route' => $route, 'paths' => []];
+            $requested[$key] = ['method' => $method, 'route' => $route, 'paths' => [], 'time' => 0];
         }
+        $requested[$key]['time'] += $time;
         $requested[$key]['paths'][] = $path;
         $cache->set($this->getCacheKey(), $requested, $this->getCacheTtl());
 
@@ -392,9 +394,11 @@ abstract class WebTestCase extends BaseWebTestCase
         array $requestParameters = []
     ) {
         $path = $this->generateRoute($route, $routeParameters);
-        $this->addToRequested($method, $route, $path);
+        $start = microtime(true);
         $client->request($method, $path, $requestParameters);
         $response = $client->getResponse();
+        $time = round(microtime(true) - $start, 3);
+        $this->addToRequested($method, $route, $path, $time);
         $this->handleResponse($response);
 
         return $response;
