@@ -57,7 +57,7 @@ abstract class WebTestCase extends BaseWebTestCase
             $requested[$key] = ['method' => $method, 'route' => $route, 'paths' => [], 'time' => 0];
         }
         $requested[$key]['time'] += $time;
-        $requested[$key]['paths'][] = $path;
+        $requested[$key]['paths'][] = ['path' => $path, 'time' => $time];
         $cache->set($this->getCacheKey(), $requested, $this->getCacheTtl());
 
         $this->lastest = ['route' => $route, 'method' => $method, 'path' => $path];

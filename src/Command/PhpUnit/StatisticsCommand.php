@@ -38,7 +38,7 @@ class StatisticsCommand extends ContainerAwareCommand
         $routes = $this->getRoutes();
         $requested = $this->getRequested();
         $output->writeln(['', '<info>Tested routes</info>', '']);
-        $testedRoutes = $totalRequest = $pendingRoutes = 0;
+        $totalTime = $testedRoutes = $totalRequest = $pendingRoutes = 0;
         $totalRoutes = count($routes);
         foreach ($requested as $route) {
             ++$testedRoutes;
@@ -51,20 +51,20 @@ class StatisticsCommand extends ContainerAwareCommand
             if (!$count) {
                 continue;
             }
+            $totalTime += $route['time'];
             $average = round($route['time'] / $count, 3);
             $output->writeln(
                 sprintf(
-                    '%04d. <info>%s</info> %s %dx%s',
+                    '%04d. <info>%s</info> %s ~%s',
                     $testedRoutes,
                     $route['method'],
                     $route['route'],
-                    $count,
-                    (string)$average
+                    number_format($average, 3)
                 )
             );
             foreach ($route['paths'] as $path) {
                 ++$totalRequest;
-                $output->writeln(sprintf('   - %s', $path));
+                $output->writeln(sprintf('   - %s %s', $path['path'], number_format($path['time'], 3)));
             }
             unset($routes[$key]);
         }
@@ -87,6 +87,7 @@ class StatisticsCommand extends ContainerAwareCommand
             ->setRows(
                 [
                     ['Total requests', number_format($totalRequest), ''],
+                    ['Average time per request', number_format(round($totalTime / $totalRequest, 3), 3), ''],
                     ['Total routes', number_format($totalRoutes), ''],
                     [
                         'Tested routes',
