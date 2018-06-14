@@ -43,7 +43,7 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param string $method
      * @param string $route
      * @param string $path
-     * @param float  $time
+     * @param float $time
      */
     protected function addToRequested(string $method, string $route, string $path, float $time)
     {
@@ -81,7 +81,7 @@ abstract class WebTestCase extends BaseWebTestCase
 
     /**
      * @param Response $response
-     * @param string   $isContained
+     * @param string $isContained
      */
     protected function assertResponseContains(Response $response, string $isContained)
     {
@@ -90,7 +90,7 @@ abstract class WebTestCase extends BaseWebTestCase
 
     /**
      * @param Response $response
-     * @param string   $contentType
+     * @param string $contentType
      */
     protected function assertResponseContentType(Response $response, string $contentType)
     {
@@ -119,7 +119,7 @@ abstract class WebTestCase extends BaseWebTestCase
 
     /**
      * @param Response $response
-     * @param int      $status
+     * @param int $status
      */
     protected function assertStatus(Response $response, int $status)
     {
@@ -128,7 +128,7 @@ abstract class WebTestCase extends BaseWebTestCase
 
     /**
      * @param string $routeName
-     * @param array  $params
+     * @param array $params
      *
      * @return mixed
      */
@@ -184,7 +184,7 @@ abstract class WebTestCase extends BaseWebTestCase
 
     /**
      * @param Response $response
-     * @param string   $name
+     * @param string $name
      * @return bool|string
      */
     protected function getCsrfTokenValueFromResponse(Response $response, $name = 'form')
@@ -221,7 +221,7 @@ abstract class WebTestCase extends BaseWebTestCase
             $now->format('d/m/Y H:i')
         );
         if (strlen($name) > $limit) {
-            return substr(sprintf('...%s', $name), -$limit);
+            return trim(substr(sprintf('...%s', $name), -$limit));
         }
 
         return $name;
@@ -257,7 +257,7 @@ abstract class WebTestCase extends BaseWebTestCase
 
     /**
      * @param Response $response
-     * @param string   $name
+     * @param string $name
      * @return bool|string
      */
     protected function getFormNameFromResponse(Response $response, $name = 'form')
@@ -349,7 +349,7 @@ abstract class WebTestCase extends BaseWebTestCase
     /**
      * @param Client $client
      * @param string $username
-     * @param array  $roles
+     * @param array $roles
      */
     protected function logIn(Client $client, string $email, array $roles = [])
     {
@@ -382,8 +382,8 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param Client $client
      * @param string $method
      * @param string $route
-     * @param array  $routeParameters
-     * @param array  $requestParameters
+     * @param array $routeParameters
+     * @param array $requestParameters
      * @return null|Response
      */
     protected function request(
@@ -408,7 +408,7 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param Client $client
      * @param string $method
      * @param string $route
-     * @param array  $parameters
+     * @param array $parameters
      * @return null|Response
      */
     protected function requestAndAssertNotFound(
@@ -427,7 +427,7 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param Client $client
      * @param string $method
      * @param string $route
-     * @param array  $parameters
+     * @param array $parameters
      * @return null|Response
      */
     protected function requestAndAssertOk(
@@ -447,7 +447,7 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param Client $client
      * @param string $method
      * @param string $route
-     * @param array  $parameters
+     * @param array $parameters
      * @return null|Response
      */
     protected function requestAndAssertOkAndHtml(
@@ -467,7 +467,7 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param Client $client
      * @param string $method
      * @param string $route
-     * @param array  $parameters
+     * @param array $parameters
      * @return null|Response
      */
     protected function requestAndAssertOkAndJson(
@@ -486,8 +486,8 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param Client $client
      * @param string $method
      * @param string $route
-     * @param array  $routeParameters
-     * @param array  $parameters
+     * @param array $routeParameters
+     * @param array $parameters
      * @return null|Response
      */
     protected function requestAndAssertRedirect(
@@ -506,9 +506,9 @@ abstract class WebTestCase extends BaseWebTestCase
     /**
      * @param Client $client
      * @param string $route
-     * @param array  $routeParams
+     * @param array $routeParams
      * @param string $formName
-     * @param array  $formParams
+     * @param array $formParams
      */
     protected function requestGetAndPost(
         Client $client,
@@ -540,9 +540,9 @@ abstract class WebTestCase extends BaseWebTestCase
     /**
      * @param Client $client
      * @param string $route
-     * @param array  $routeParams
+     * @param array $routeParams
      * @param string $formName
-     * @param array  $formParams
+     * @param array $formParams
      */
     protected function requestGetAndPostAndAssertRedirect(
         Client $client,
