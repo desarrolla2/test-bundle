@@ -384,6 +384,9 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param string $route
      * @param array $routeParameters
      * @param array $requestParameters
+     * @param array $requestFiles
+     * @param array $requestServer
+     * @param string|null $requestContent
      * @return null|Response
      */
     protected function request(
@@ -391,11 +394,14 @@ abstract class WebTestCase extends BaseWebTestCase
         string $method = 'GET',
         string $route,
         array $routeParameters = [],
-        array $requestParameters = []
+        array $requestParameters = [],
+        array $requestFiles = [],
+        array $requestServer = [],
+        string $requestContent = null
     ) {
         $path = $this->generateRoute($route, $routeParameters);
         $start = microtime(true);
-        $client->request($method, $path, $requestParameters);
+        $client->request($method, $path, $requestParameters, $requestFiles, $requestServer, $requestContent);
         $response = $client->getResponse();
         $time = round(microtime(true) - $start, 3);
         $this->addToRequested($method, $route, $path, $time);
@@ -474,9 +480,10 @@ abstract class WebTestCase extends BaseWebTestCase
         Client $client,
         string $method = 'GET',
         string $route,
+        array $routeParameters = [],
         array $parameters = []
     ) {
-        $response = $this->requestAndAssertOk($client, $method, $route, $parameters);
+        $response = $this->requestAndAssertOk($client, $method, $route, $routeParameters, $parameters);
         $this->assertResponseIsJson($response);
 
         return $response;

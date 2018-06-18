@@ -29,7 +29,7 @@ class StatisticsCommand extends ContainerAwareCommand
     }
 
     /**
-     * @param InputInterface  $input
+     * @param InputInterface $input
      * @param OutputInterface $output
      * @return int|null|void
      */
@@ -77,6 +77,7 @@ class StatisticsCommand extends ContainerAwareCommand
         }
         $testedPercentage = 100 * $testedRoutes / $totalRoutes;
         $pendingPercentage = 100 - $testedPercentage;
+        $averagePerRequest = $totalRequest ? $totalTime / $totalRequest : 0;
         $color = $this->getColor($testedPercentage);
 
         $output->writeln(['', '',]);
@@ -87,7 +88,7 @@ class StatisticsCommand extends ContainerAwareCommand
             ->setRows(
                 [
                     ['Total requests', number_format($totalRequest), ''],
-                    ['Average time per request', number_format(round($totalTime / $totalRequest, 3), 3), ''],
+                    ['Average time per request', number_format(round($averagePerRequest, 3), 3), ''],
                     ['Total routes', number_format($totalRoutes), ''],
                     [
                         'Tested routes',
@@ -198,7 +199,7 @@ class StatisticsCommand extends ContainerAwareCommand
         $routes = [];
         /**
          * @var string $routeName
-         * @var Route  $route
+         * @var Route $route
          */
         foreach ($collection as $routeName => $route) {
             if ($this->shouldRouteNameBeIgnored($routeName)) {
