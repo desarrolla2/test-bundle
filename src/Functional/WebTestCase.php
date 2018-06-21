@@ -244,14 +244,15 @@ abstract class WebTestCase extends BaseWebTestCase
     protected function getFailedMessage()
     {
         if (!is_array($this->lastest)) {
-            return 'failed';
+            return '';
         }
 
         return sprintf(
-            'failed executing "%s" "%s" with route "%s"',
+            'Failed executing "%s" "%s" with route "%s". You can find last response in %s._format.',
             $this->lastest['method'],
             $this->lastest['path'],
-            $this->lastest['route']
+            $this->lastest['route'],
+            $this->getOutputFileName()
         );
     }
 
@@ -308,6 +309,27 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
+     * @param Response $response
+     * @return string
+     */
+    protected function getOutputFileExtension(Response $response)
+    {
+        if ($response->headers->get('Content-Type') == 'application/json') {
+            return 'json';
+        }
+
+        return 'html';
+    }
+
+    /**
+     * @return string
+     */
+    protected function getOutputFileName()
+    {
+        return sprintf('%s/test.latest.ouput', $this->getParameter('kernel.logs_dir'));
+    }
+
+    /**
      * @param string $parameter
      * @return mixed
      */
@@ -342,8 +364,14 @@ abstract class WebTestCase extends BaseWebTestCase
      */
     protected function handleResponse(Response $response)
     {
-        $directory = $this->getParameter('kernel.logs_dir');
-        file_put_contents(sprintf('%s/test.latest.ouput.html', $directory), $response->getContent());
+        file_put_contents(
+            sprintf(
+                '%s.%s',
+                $this->getOutputFileName(),
+                $this->getOutputFileExtension($response)
+            ),
+            $response->getContent()
+        );
     }
 
     /**
