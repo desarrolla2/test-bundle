@@ -544,13 +544,16 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param array $routeParams
      * @param string $formName
      * @param array $formParams
+     * @param array $fileParams
+     * @return null|Response
      */
     protected function requestGetAndPost(
         Client $client,
         string $route,
         array $routeParams = [],
         string $formName = 'form',
-        array $formParams = []
+        array $formParams = [],
+        array $fileParams = []
     ) {
         $response = $this->requestAndAssertOkAndHtml(
             $client,
@@ -568,7 +571,8 @@ abstract class WebTestCase extends BaseWebTestCase
             'POST',
             $route,
             $routeParams,
-            [$formName => array_merge(['_token' => $token], $formParams)]
+            [$formName => array_merge(['_token' => $token], $formParams)],
+            $fileParams
         );
     }
 
@@ -578,15 +582,17 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param array $routeParams
      * @param string $formName
      * @param array $formParams
+     * @param array $fileParams
      */
     protected function requestGetAndPostAndAssertRedirect(
         Client $client,
         string $route,
         array $routeParams = [],
         string $formName = 'form',
-        array $formParams = []
+        array $formParams = [],
+        array $fileParams = []
     ) {
-        $response = $this->requestGetAndPost($client, $route, $routeParams, $formName, $formParams);
+        $response = $this->requestGetAndPost($client, $route, $routeParams, $formName, $formParams, $fileParams);
         $this->assertRedirect($response);
     }
 
