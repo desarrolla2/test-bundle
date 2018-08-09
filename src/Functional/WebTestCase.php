@@ -52,6 +52,9 @@ abstract class WebTestCase extends BaseWebTestCase
         if (!$requested) {
             $requested = [];
         }
+        if ($method == 'HEAD') {
+            $method = 'GET';
+        }
         $key = sprintf('%s%s', $method, $route);
         if (!array_key_exists($key, $requested)) {
             $requested[$key] = ['method' => $method, 'route' => $route, 'paths' => [], 'time' => 0];
