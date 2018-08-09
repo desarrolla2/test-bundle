@@ -40,6 +40,7 @@ class StatisticsCommand extends ContainerAwareCommand
         $output->writeln(['', '<info>Tested routes</info>', '']);
         $totalTime = $testedRoutes = $totalRequest = $pendingRoutes = 0;
         $totalRoutes = count($routes);
+        $numberOfDigits = strlen((string)$totalRoutes);
         foreach ($requested as $route) {
             ++$testedRoutes;
             $key = $this->getHash($route['method'], $route['route']);
@@ -55,8 +56,8 @@ class StatisticsCommand extends ContainerAwareCommand
             $average = round($route['time'] / $count, 3);
             $output->writeln(
                 sprintf(
-                    '%04d. <info>%s</info> %s ~%s',
-                    $testedRoutes,
+                    '%s. <info>%s</info> %s ~%s',
+                    str_pad($testedRoutes, $numberOfDigits, '0', STR_PAD_LEFT),
                     $route['method'],
                     $route['route'],
                     number_format($average, 3)
@@ -72,7 +73,12 @@ class StatisticsCommand extends ContainerAwareCommand
         foreach ($routes as $route) {
             ++$pendingRoutes;
             $output->writeln(
-                sprintf('%04d. <info>%s</info> %s', $pendingRoutes + $testedRoutes, $route['method'], $route['route'])
+                sprintf(
+                    '%s. <info>%s</info> %s',
+                    str_pad($pendingRoutes + $testedRoutes, $numberOfDigits, '0', STR_PAD_LEFT),
+                    str_pad($route['method'], 4, ' '),
+                    $route['route']
+                )
             );
         }
         $testedPercentage = 100 * $testedRoutes / $totalRoutes;
