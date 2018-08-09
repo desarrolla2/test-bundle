@@ -341,6 +341,24 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
+     * @param $client
+     * @return bool|string
+     */
+    protected function getPathToDefaltImageFile()
+    {
+        return realpath(sprintf('%s/../../data/file.png', __DIR__));
+    }
+
+    /**
+     * @param $client
+     * @return bool|string
+     */
+    protected function getPathToDefaltPdfFile()
+    {
+        return realpath(sprintf('%s/../../data/file.pdf', __DIR__));
+    }
+
+    /**
      * @return User
      */
     protected function getUser(string $email)
