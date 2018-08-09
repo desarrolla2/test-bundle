@@ -584,6 +584,27 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param array $formParams
      * @param array $fileParams
      */
+    protected function requestGetAndPostAndAssertOkAndHtml(
+        Client $client,
+        string $route,
+        array $routeParams = [],
+        string $formName = 'form',
+        array $formParams = [],
+        array $fileParams = []
+    ) {
+        $response = $this->requestGetAndPost($client, $route, $routeParams, $formName, $formParams, $fileParams);
+        $this->assertOk($response);
+        $this->assertResponseIsHtml($response);
+    }
+
+    /**
+     * @param Client $client
+     * @param string $route
+     * @param array $routeParams
+     * @param string $formName
+     * @param array $formParams
+     * @param array $fileParams
+     */
     protected function requestGetAndPostAndAssertRedirect(
         Client $client,
         string $route,
