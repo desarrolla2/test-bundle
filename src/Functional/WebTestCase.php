@@ -587,12 +587,14 @@ abstract class WebTestCase extends BaseWebTestCase
         }
         $token = $this->getCsrfTokenValueFromResponse($response, $formName);
 
+        $formParams['_token'] = $token;
+
         return $this->request(
             $client,
             'POST',
             $route,
             $routeParams,
-            [$formName => array_merge(['_token' => $token], $formParams)],
+            [$formName => $formParams],
             $fileParams
         );
     }
