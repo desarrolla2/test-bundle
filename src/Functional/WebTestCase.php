@@ -208,30 +208,6 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
-     * @return string
-     */
-    protected function getDefaultName(): string
-    {
-        $limit = 75;
-        $now = new \DateTime();
-        $stack = debug_backtrace(0, 1);
-        $first = reset($stack);
-        $file = str_replace($this->container->getParameter('kernel.project_dir'), '', $first['file']);
-        $name = sprintf(
-            'created by phpunit on "%s:%d" at "%s"',
-            $file,
-            $first['line'],
-            $now->format('d/m/Y H:i')
-        );
-        if (strlen($name) > $limit) {
-            return trim(substr(sprintf('...%s', $name), -$limit));
-        }
-
-        return $name;
-
-    }
-
-    /**
      * @return \Doctrine\ORM\EntityManager|object
      */
     protected function getEntityManager()
@@ -344,21 +320,53 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
-     * @param $client
-     * @return bool|string
+     * @return string
+     * @throws \Exception
      */
-    protected function getPathToDefaltImageFile()
+    protected function getRandomEmail()
     {
-        return realpath(sprintf('%s/../../data/file.png', __DIR__));
+        return sprintf('%s@devtia.com', bin2hex(random_bytes(10)));
     }
 
     /**
      * @param $client
      * @return bool|string
      */
-    protected function getPathToDefaltPdfFile()
+    protected function getRandomPdfFile()
     {
         return realpath(sprintf('%s/../../data/file.pdf', __DIR__));
+    }
+
+    /**
+     * @param $client
+     * @return bool|string
+     */
+    protected function getRandomPngFile()
+    {
+        return realpath(sprintf('%s/../../data/file.png', __DIR__));
+    }
+
+    /**
+     * @return string
+     */
+    protected function getRandomString(): string
+    {
+        $limit = 75;
+        $now = new \DateTime();
+        $stack = debug_backtrace(0, 1);
+        $first = reset($stack);
+        $file = str_replace($this->container->getParameter('kernel.project_dir'), '', $first['file']);
+        $name = sprintf(
+            'created by phpunit on "%s:%d" at "%s"',
+            $file,
+            $first['line'],
+            $now->format('d/m/Y H:i')
+        );
+        if (strlen($name) > $limit) {
+            return trim(substr(sprintf('...%s', $name), -$limit));
+        }
+
+        return $name;
     }
 
     /**
