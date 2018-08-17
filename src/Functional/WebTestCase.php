@@ -122,6 +122,22 @@ abstract class WebTestCase extends BaseWebTestCase
 
     /**
      * @param Response $response
+     */
+    protected function assertResponseIsXml(Response $response)
+    {
+        $this->assertResponseContentType($response, 'text/xml');
+    }
+
+    /**
+     * @param Response $response
+     */
+    protected function assertResponseIsCsv(Response $response)
+    {
+        $this->assertResponseContentType($response, 'text/csv; charset=utf-8');
+    }
+
+    /**
+     * @param Response $response
      * @param int $status
      */
     protected function assertStatus(Response $response, int $status)
@@ -657,5 +673,49 @@ abstract class WebTestCase extends BaseWebTestCase
                 $prop->setValue($this, null);
             }
         }
+    }
+
+    /**
+     * @param Client $client
+     * @param string $route
+     * @param array  $routeParams
+     * @param string $formName
+     * @param array  $formParams
+     * @param array  $fileParams
+     */
+    protected function requestGetPostAndDownloadCsv(
+        Client $client,
+        string $route,
+        array $routeParams = [],
+        string $formName = 'form',
+        array $formParams = [],
+        array $fileParams = []
+    ) {
+        $response = $this->requestAndAssertOkAndHtml(
+            $client,
+            'GET',
+            $route,
+            $routeParams
+        );
+        if ($formName == '') {
+            $formName = $this->getFormNameFromResponse($response);
+        }
+        $token = $this->getCsrfTokenValueFromResponse($response, $formName);
+
+        $formParams['_token'] = $token;
+
+        ob_start();
+        $response = $this->request(
+            $client,
+            'POST',
+            $route,
+            $routeParams,
+            [$formName => $formParams],
+            $fileParams
+        );
+        ob_end_clean();
+        $this->assertResponseIsCsv($response);
+
+        return $response;
     }
 }
