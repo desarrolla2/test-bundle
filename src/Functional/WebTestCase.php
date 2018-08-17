@@ -363,17 +363,17 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
+     * @param int $limit
      * @return string
      */
-    protected function getRandomString(): string
+    protected function getRandomString(int $limit = 75): string
     {
-        $limit = 75;
         $now = new \DateTime();
         $stack = debug_backtrace(0, 1);
         $first = reset($stack);
         $file = str_replace($this->container->getParameter('kernel.project_dir'), '', $first['file']);
         $name = sprintf(
-            'created by phpunit on "%s:%d" at "%s"',
+            '"%s:%d" at "%s"',
             $file,
             $first['line'],
             $now->format('d/m/Y H:i')
