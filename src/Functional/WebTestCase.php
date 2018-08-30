@@ -107,6 +107,14 @@ abstract class WebTestCase extends BaseWebTestCase
     /**
      * @param Response $response
      */
+    protected function assertResponseIsCsv(Response $response)
+    {
+        $this->assertResponseContentType($response, 'text/csv; charset=utf-8');
+    }
+
+    /**
+     * @param Response $response
+     */
     protected function assertResponseIsHtml(Response $response)
     {
         $this->assertResponseContentType($response, 'text/html; charset=UTF-8');
@@ -126,14 +134,6 @@ abstract class WebTestCase extends BaseWebTestCase
     protected function assertResponseIsXml(Response $response)
     {
         $this->assertResponseContentType($response, 'text/xml');
-    }
-
-    /**
-     * @param Response $response
-     */
-    protected function assertResponseIsCsv(Response $response)
-    {
-        $this->assertResponseContentType($response, 'text/csv; charset=utf-8');
     }
 
     /**
@@ -350,7 +350,11 @@ abstract class WebTestCase extends BaseWebTestCase
      */
     protected function getRandomPdfFile()
     {
-        return realpath(sprintf('%s/../../data/file.pdf', __DIR__));
+        $source = realpath(sprintf('%s/../../data/file.pdf', __DIR__));
+        $target = sprintf('%s/%s.pdf', sys_get_temp_dir(), uniqid('desarrolla2_test_bundle_', true));
+        exec(sprintf('cp %s %s', $source, $target));
+
+        return $target;
     }
 
     /**
@@ -664,24 +668,13 @@ abstract class WebTestCase extends BaseWebTestCase
         $this->assertRedirect($response);
     }
 
-    protected function tearDown()
-    {
-        $reflection = new \ReflectionObject($this);
-        foreach ($reflection->getProperties() as $prop) {
-            if (!$prop->isStatic() && 0 !== strpos($prop->getDeclaringClass()->getName(), 'PHPUnit_')) {
-                $prop->setAccessible(true);
-                $prop->setValue($this, null);
-            }
-        }
-    }
-
     /**
      * @param Client $client
      * @param string $route
-     * @param array  $routeParams
+     * @param array $routeParams
      * @param string $formName
-     * @param array  $formParams
-     * @param array  $fileParams
+     * @param array $formParams
+     * @param array $fileParams
      */
     protected function requestGetPostAndDownloadCsv(
         Client $client,
@@ -717,5 +710,16 @@ abstract class WebTestCase extends BaseWebTestCase
         $this->assertResponseIsCsv($response);
 
         return $response;
+    }
+
+    protected function tearDown()
+    {
+        $reflection = new \ReflectionObject($this);
+        foreach ($reflection->getProperties() as $prop) {
+            if (!$prop->isStatic() && 0 !== strpos($prop->getDeclaringClass()->getName(), 'PHPUnit_')) {
+                $prop->setAccessible(true);
+                $prop->setValue($this, null);
+            }
+        }
     }
 }
