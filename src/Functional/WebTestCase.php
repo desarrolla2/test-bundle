@@ -188,7 +188,11 @@ abstract class WebTestCase extends BaseWebTestCase
      */
     protected function getRandomPdfFile()
     {
-        return realpath(sprintf('%s/../../data/file.pdf', __DIR__));
+        $source = realpath(sprintf('%s/../../data/file.pdf', __DIR__));
+        $target = sprintf('%s/%s.pdf', sys_get_temp_dir(), uniqid('desarrolla2_test_bundle_', true));
+        exec(sprintf('cp %s %s', $source, $target));
+
+        return $target;
     }
 
     /**
@@ -201,17 +205,17 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
+     * @param int $limit
      * @return string
      */
-    protected function getRandomString(): string
+    protected function getRandomString(int $limit = 75): string
     {
-        $limit = 75;
         $now = new \DateTime();
         $stack = debug_backtrace(0, 1);
         $first = reset($stack);
         $file = str_replace($this->container->getParameter('kernel.project_dir'), '', $first['file']);
         $name = sprintf(
-            'created by phpunit on "%s:%d" at "%s"',
+            '"%s:%d" at "%s"',
             $file,
             $first['line'],
             $now->format('d/m/Y H:i')
@@ -718,24 +722,13 @@ abstract class WebTestCase extends BaseWebTestCase
         );
     }
 
-    protected function tearDown()
-    {
-        $reflection = new \ReflectionObject($this);
-        foreach ($reflection->getProperties() as $prop) {
-            if (!$prop->isStatic() && 0 !== strpos($prop->getDeclaringClass()->getName(), 'PHPUnit_')) {
-                $prop->setAccessible(true);
-                $prop->setValue($this, null);
-            }
-        }
-    }
-
     /**
      * @param Client $client
      * @param string $route
-     * @param array  $routeParams
+     * @param array $routeParams
      * @param string $formName
-     * @param array  $formParams
-     * @param array  $fileParams
+     * @param array $formParams
+     * @param array $fileParams
      */
     protected function requestGetPostAndDownloadCsv(
         Client $client,
@@ -810,5 +803,16 @@ abstract class WebTestCase extends BaseWebTestCase
     protected function assertResponseIsPdf(Response $response)
     {
         $this->assertResponseContentType($response, 'application/pdf');
+    }
+
+    protected function tearDown()
+    {
+        $reflection = new \ReflectionObject($this);
+        foreach ($reflection->getProperties() as $prop) {
+            if (!$prop->isStatic() && 0 !== strpos($prop->getDeclaringClass()->getName(), 'PHPUnit_')) {
+                $prop->setAccessible(true);
+                $prop->setValue($this, null);
+            }
+        }
     }
 }
