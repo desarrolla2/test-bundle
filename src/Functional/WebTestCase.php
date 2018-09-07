@@ -367,6 +367,17 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
+     * @param array $items
+     * @return mixed
+     */
+    protected function gerRandomItem(array $items)
+    {
+        $items = array_values($items);
+
+        return $items[array_rand($items)];
+    }
+
+    /**
      * @return Cache
      */
     protected function getCache()
