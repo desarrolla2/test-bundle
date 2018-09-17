@@ -40,100 +40,22 @@ abstract class WebTestCase extends BaseWebTestCase
     private $lastest = ['route' => null, 'method' => null, 'path' => null];
 
     /**
-     * @param string $method
-     * @param string $route
-     * @param string $path
-     * @param float $time
+     * @return string
      */
-    protected function addToRequested(string $method, string $route, string $path, float $time)
+    protected static function getKernelClass()
     {
-        $cache = $this->getCache();
-        $requested = $cache->get($this->getCacheKey());
-        if (!$requested) {
-            $requested = [];
-        }
-        if ($method == 'HEAD') {
-            $method = 'GET';
-        }
-        $key = sprintf('%s%s', $method, $route);
-        if (!array_key_exists($key, $requested)) {
-            $requested[$key] = ['method' => $method, 'route' => $route, 'paths' => [], 'time' => 0];
-        }
-        $requested[$key]['time'] += $time;
-        $requested[$key]['paths'][] = ['path' => $path, 'time' => $time];
-        $cache->set($this->getCacheKey(), $requested, $this->getCacheTtl());
+        require_once __DIR__.'/../../../../../app/AppKernel.php';
 
-        $this->lastest = ['route' => $route, 'method' => $method, 'path' => $path];
+        return 'AppKernel';
     }
 
     /**
      * @param Response $response
-     */
-    protected function assertOk(Response $response)
-    {
-        $this->assertStatus($response, Response::HTTP_OK);
-    }
-
-    /**
-     * @param Response $response
-     */
-    protected function assertRedirect(Response $response)
-    {
-        $this->assertStatus($response, Response::HTTP_FOUND);
-    }
-
-    /**
-     * @param Response $response
-     * @param string $isContained
+     * @param string   $isContained
      */
     protected function assertResponseContains(Response $response, string $isContained)
     {
         $this->assertRegexp(sprintf('#%s#', preg_quote($isContained)), $response->getContent());
-    }
-
-    /**
-     * @param Response $response
-     * @param string $contentType
-     */
-    protected function assertResponseContentType(Response $response, string $contentType)
-    {
-        $this->assertSame(
-            $contentType,
-            $response->headers->get('Content-Type'),
-            $this->getFailedMessage()
-        );
-    }
-
-    /**
-     * @param Response $response
-     */
-    protected function assertResponseIsCsv(Response $response)
-    {
-        $this->assertResponseContentType($response, 'text/csv; charset=utf-8');
-    }
-
-    /**
-     * @param Response $response
-     */
-    protected function assertResponseIsHtml(Response $response)
-    {
-        $this->assertResponseContentType($response, 'text/html; charset=UTF-8');
-    }
-
-    /**
-     * @param Response $response
-     */
-    protected function assertResponseIsJson(Response $response)
-    {
-        $this->assertResponseContentType($response, 'application/json');
-    }
-
-    /**
-     * @param Response $response
-     */
-    protected function assertResponseIsPdf(Response $response)
-    {
-        $this->assertResponseContentType($response, 'application/pdf');
     }
 
     /**
@@ -146,99 +68,15 @@ abstract class WebTestCase extends BaseWebTestCase
 
     /**
      * @param Response $response
-     * @param int $status
+     * @param string   $contentType
      */
-    protected function assertStatus(Response $response, int $status)
+    protected function assertResponseContentType(Response $response, string $contentType)
     {
-        $this->assertSame($status, $response->getStatusCode(), $this->getFailedMessage());
-    }
-
-    /**
-     * @param string $routeName
-     * @param array $params
-     *
-     * @return mixed
-     */
-    protected function generateRoute($routeName, array $params = [])
-    {
-        return $this->getContainer()->get('router')->generate($routeName, $params);
-    }
-
-    /**
-     * @return Cache
-     */
-    protected function getCache()
-    {
-        return $this->getContainer()->get('desarrolla2.cache');
-    }
-
-    /**
-     * @return string
-     */
-    protected static function getCacheKey(): string
-    {
-        return Key::CACHE;
-    }
-
-    /**
-     * @return float|int
-     */
-    protected function getCacheTtl()
-    {
-        return 60;
-    }
-
-    /**
-     * @return Client
-     */
-    protected function getClient()
-    {
-        return static::createClient();
-    }
-
-    /**
-     * @return Container|\Symfony\Component\DependencyInjection\ContainerInterface
-     */
-    protected function getContainer()
-    {
-        if (!$this->container) {
-            $kernel = static::bootKernel([]);
-            $this->container = $kernel->getContainer();
-        }
-
-        return $this->container;
-    }
-
-    /**
-     * @param Response $response
-     * @param string $name
-     * @return bool|string
-     */
-    protected function getCsrfTokenValueFromResponse(Response $response, $name = 'form')
-    {
-        $regex = sprintf('#%s\[\_token\]\"[\s\w\=\-\"]+value\=\"[\w\d\-]+\"#', $name);
-        preg_match($regex, $response->getContent(), $match1);
-        if (!$match1) {
-            return '';
-        }
-
-        $regex = '#value\=\"[\w\d\-]+\"#';
-        preg_match($regex, $match1[0], $match2);
-        if (!$match2) {
-            return '';
-        }
-
-        return str_replace(['value=', '"'], ['', ''], $match2[0]);
-    }
-
-    /**
-     * @return \Doctrine\ORM\EntityManager|object
-     */
-    protected function getEntityManager()
-    {
-        $container = $this->getContainer();
-
-        return $container->get('doctrine.orm.entity_manager');
+        $this->assertSame(
+            $contentType,
+            $response->headers->get('Content-Type'),
+            $this->getFailedMessage()
+        );
     }
 
     /**
@@ -260,29 +98,43 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
-     * @param Response $response
-     * @param string $name
-     * @return bool|string
+     * @return string
      */
-    protected function getFormNameFromResponse(Response $response, $name = 'form')
+    protected function getOutputFileName()
     {
-        $regex = sprintf('#\"[\w\d\-]+\[\_token\]#', $name);
-        preg_match($regex, $response->getContent(), $matches);
-        if (!$matches) {
-            return '';
-        }
-
-        return str_replace(['[_token]', '"'], ['', ''], $matches[0]);
+        return sprintf('%s/test.latest.ouput', $this->getParameter('kernel.logs_dir'));
     }
 
     /**
-     * @return string
+     * @param string $parameter
+     * @return mixed
      */
-    protected static function getKernelClass()
+    protected function getParameter(string $parameter)
     {
-        require_once __DIR__.'/../../../../../app/AppKernel.php';
+        $container = $this->getContainer();
 
-        return 'AppKernel';
+        return $container->getParameter($parameter);
+    }
+
+    /**
+     * @return Container|\Symfony\Component\DependencyInjection\ContainerInterface
+     */
+    protected function getContainer()
+    {
+        if (!$this->container) {
+            $kernel = static::bootKernel([]);
+            $this->container = $kernel->getContainer();
+        }
+
+        return $this->container;
+    }
+
+    /**
+     * @return Client
+     */
+    protected function getClient()
+    {
+        return static::createClient();
     }
 
     /**
@@ -300,6 +152,16 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
+     * @return \Doctrine\ORM\EntityManager|object
+     */
+    protected function getEntityManager()
+    {
+        $container = $this->getContainer();
+
+        return $container->get('doctrine.orm.entity_manager');
+    }
+
+    /**
      * @return ConsoleOutput
      */
     protected function getOutput()
@@ -309,38 +171,6 @@ abstract class WebTestCase extends BaseWebTestCase
         }
 
         return $this->output;
-    }
-
-    /**
-     * @param Response $response
-     * @return string
-     */
-    protected function getOutputFileExtension(Response $response)
-    {
-        if ($response->headers->get('Content-Type') == 'application/json') {
-            return 'json';
-        }
-
-        return 'html';
-    }
-
-    /**
-     * @return string
-     */
-    protected function getOutputFileName()
-    {
-        return sprintf('%s/test.latest.ouput', $this->getParameter('kernel.logs_dir'));
-    }
-
-    /**
-     * @param string $parameter
-     * @return mixed
-     */
-    protected function getParameter(string $parameter)
-    {
-        $container = $this->getContainer();
-
-        return $container->getParameter($parameter);
     }
 
     /**
@@ -409,43 +239,9 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
-     * @return User
-     */
-    protected function getUser(string $email)
-    {
-        $em = self::getContainer()->get('doctrine.orm.entity_manager');
-        $user = $em->getRepository($this->getUserEntity())->findOneBy(['email' => $email]);
-        if (!$user) {
-            throw  new \InvalidArgumentException(
-                sprintf('"%s" with email "%s" not found', $this->getUserEntity(), $email)
-            );
-        }
-
-        return $user;
-    }
-
-    abstract protected function getUserEntity();
-
-    /**
-     * @param Response $response
-     * @return bool|void
-     */
-    protected function handleResponse(Response $response)
-    {
-        file_put_contents(
-            sprintf(
-                '%s.%s',
-                $this->getOutputFileName(),
-                $this->getOutputFileExtension($response)
-            ),
-            $response->getContent()
-        );
-    }
-
-    /**
      * @param Client $client
      * @param string $username
-     * @param array $roles
+     * @param array  $roles
      */
     protected function logIn(Client $client, string $email, array $roles = [])
     {
@@ -464,6 +260,24 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
+     * @return User
+     */
+    protected function getUser(string $email)
+    {
+        $em = self::getContainer()->get('doctrine.orm.entity_manager');
+        $user = $em->getRepository($this->getUserEntity())->findOneBy(['email' => $email]);
+        if (!$user) {
+            throw  new \InvalidArgumentException(
+                sprintf('"%s" with email "%s" not found', $this->getUserEntity(), $email)
+            );
+        }
+
+        return $user;
+    }
+
+    abstract protected function getUserEntity();
+
+    /**
      * @param $entity
      * @throws \Doctrine\ORM\OptimisticLockException
      */
@@ -478,10 +292,29 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param Client $client
      * @param string $method
      * @param string $route
-     * @param array $routeParameters
-     * @param array $requestParameters
-     * @param array $requestFiles
-     * @param array $requestServer
+     * @param array  $parameters
+     * @return null|Response
+     */
+    protected function requestAndAssertNotFound(
+        Client $client,
+        string $method = 'GET',
+        string $route,
+        array $parameters = []
+    ) {
+        $response = $this->request($client, $method, $route, $parameters);
+        $this->assertStatus($response, Response::HTTP_NOT_FOUND, $route);
+
+        return $response;
+    }
+
+    /**
+     * @param Client      $client
+     * @param string      $method
+     * @param string      $route
+     * @param array       $routeParameters
+     * @param array       $requestParameters
+     * @param array       $requestFiles
+     * @param array       $requestServer
      * @param string|null $requestContent
      * @return null|Response
      */
@@ -507,69 +340,110 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
-     * @param Client $client
+     * @param string $routeName
+     * @param array  $params
+     *
+     * @return mixed
+     */
+    protected function generateRoute($routeName, array $params = [])
+    {
+        return $this->getContainer()->get('router')->generate($routeName, $params);
+    }
+
+    /**
      * @param string $method
      * @param string $route
-     * @param array $parameters
-     * @return null|Response
+     * @param string $path
+     * @param float  $time
      */
-    protected function requestAndAssertNotFound(
-        Client $client,
-        string $method = 'GET',
-        string $route,
-        array $parameters = []
-    ) {
-        $response = $this->request($client, $method, $route, $parameters);
-        $this->assertStatus($response, Response::HTTP_NOT_FOUND, $route);
+    protected function addToRequested(string $method, string $route, string $path, float $time)
+    {
+        $cache = $this->getCache();
+        $requested = $cache->get($this->getCacheKey());
+        if (!$requested) {
+            $requested = [];
+        }
+        if ($method == 'HEAD') {
+            $method = 'GET';
+        }
+        $key = sprintf('%s%s', $method, $route);
+        if (!array_key_exists($key, $requested)) {
+            $requested[$key] = ['method' => $method, 'route' => $route, 'paths' => [], 'time' => 0];
+        }
+        $requested[$key]['time'] += $time;
+        $requested[$key]['paths'][] = ['path' => $path, 'time' => $time];
+        $cache->set($this->getCacheKey(), $requested, $this->getCacheTtl());
 
-        return $response;
+        $this->lastest = ['route' => $route, 'method' => $method, 'path' => $path];
+    }
+
+    /**
+     * @return Cache
+     */
+    protected function getCache()
+    {
+        return $this->getContainer()->get('desarrolla2.cache');
+    }
+
+    /**
+     * @return string
+     */
+    protected static function getCacheKey(): string
+    {
+        return Key::CACHE;
+    }
+
+    /**
+     * @return float|int
+     */
+    protected function getCacheTtl()
+    {
+        return 60;
+    }
+
+    /**
+     * @param Response $response
+     * @return bool|void
+     */
+    protected function handleResponse(Response $response)
+    {
+        file_put_contents(
+            sprintf(
+                '%s.%s',
+                $this->getOutputFileName(),
+                $this->getOutputFileExtension($response)
+            ),
+            $response->getContent()
+        );
+    }
+
+    /**
+     * @param Response $response
+     * @return string
+     */
+    protected function getOutputFileExtension(Response $response)
+    {
+        if ($response->headers->get('Content-Type') == 'application/json') {
+            return 'json';
+        }
+
+        return 'html';
+    }
+
+    /**
+     * @param Response $response
+     * @param int      $status
+     */
+    protected function assertStatus(Response $response, int $status)
+    {
+        $this->assertSame($status, $response->getStatusCode(), $this->getFailedMessage());
     }
 
     /**
      * @param Client $client
      * @param string $method
      * @param string $route
-     * @param array $parameters
-     * @return null|Response
-     */
-    protected function requestAndAssertOk(
-        Client $client,
-        string $method = 'GET',
-        string $route,
-        array $routeParameters = [],
-        array $parameters = []
-    ) {
-        $response = $this->request($client, $method, $route, $routeParameters, $parameters);
-        $this->assertOk($response);
-
-        return $response;
-    }
-
-    /**
-     * @param Client $client
-     * @param string $method
-     * @param string $route
-     * @param array $parameters
-     * @return null|Response
-     */
-    protected function requestAndAssertOkAndHtml(
-        Client $client,
-        string $method = 'GET',
-        string $route,
-        array $routeParameters = [],
-        array $parameters = []
-    ) {
-        $response = $this->requestAndAssertOk($client, $method, $route, $routeParameters, $parameters);
-        $this->assertResponseIsHtml($response);
-
-        return $response;
-    }
-
-    /**
-     * @param Client $client
-     * @param string $method
-     * @param string $route
-     * @param array $parameters
+     * @param array  $parameters
      * @return null|Response
      */
     protected function requestAndAssertOkAndJson(
@@ -589,8 +463,44 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param Client $client
      * @param string $method
      * @param string $route
-     * @param array $routeParameters
-     * @param array $parameters
+     * @param array  $parameters
+     * @return null|Response
+     */
+    protected function requestAndAssertOk(
+        Client $client,
+        string $method = 'GET',
+        string $route,
+        array $routeParameters = [],
+        array $parameters = []
+    ) {
+        $response = $this->request($client, $method, $route, $routeParameters, $parameters);
+        $this->assertOk($response);
+
+        return $response;
+    }
+
+    /**
+     * @param Response $response
+     */
+    protected function assertOk(Response $response)
+    {
+        $this->assertStatus($response, Response::HTTP_OK);
+    }
+
+    /**
+     * @param Response $response
+     */
+    protected function assertResponseIsJson(Response $response)
+    {
+        $this->assertResponseContentType($response, 'application/json');
+    }
+
+    /**
+     * @param Client $client
+     * @param string $method
+     * @param string $route
+     * @param array  $routeParameters
+     * @param array  $parameters
      * @return null|Response
      */
     protected function requestAndAssertRedirect(
@@ -607,11 +517,19 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
+     * @param Response $response
+     */
+    protected function assertRedirect(Response $response)
+    {
+        $this->assertStatus($response, Response::HTTP_FOUND);
+    }
+
+    /**
      * @param Client $client
      * @param string $route
-     * @param array $routeParams
+     * @param array  $routeParams
      */
-    protected function requestDownloadPdf(
+    protected function requestDownload(
         Client $client,
         string $route,
         array $routeParams = []
@@ -624,18 +542,55 @@ abstract class WebTestCase extends BaseWebTestCase
             $routeParams
         );
         ob_end_clean();
-        $this->assertResponseIsPdf($response);
 
         return $response;
     }
 
     /**
+     * @param Response $response
+     */
+    protected function assertResponseIsPdf(Response $response)
+    {
+        $this->assertResponseContentType($response, 'application/pdf');
+    }
+
+    /**
      * @param Client $client
      * @param string $route
-     * @param array $routeParams
+     * @param array  $routeParams
      * @param string $formName
-     * @param array $formParams
-     * @param array $fileParams
+     * @param array  $formParams
+     * @param array  $fileParams
+     */
+    protected function requestGetAndPostAndAssertOkAndHtml(
+        Client $client,
+        string $route,
+        array $routeParams = [],
+        string $formName = 'form',
+        array $formParams = [],
+        array $fileParams = [],
+        bool $csrfProtection = true
+    ) {
+        $response = $this->requestGetAndPost(
+            $client,
+            $route,
+            $routeParams,
+            $formName,
+            $formParams,
+            $fileParams,
+            $csrfProtection
+        );
+        $this->assertOk($response);
+        $this->assertResponseIsHtml($response);
+    }
+
+    /**
+     * @param Client $client
+     * @param string $route
+     * @param array  $routeParams
+     * @param string $formName
+     * @param array  $formParams
+     * @param array  $fileParams
      * @return null|Response
      */
     protected function requestGetAndPost(
@@ -644,7 +599,8 @@ abstract class WebTestCase extends BaseWebTestCase
         array $routeParams = [],
         string $formName = 'form',
         array $formParams = [],
-        array $fileParams = []
+        array $fileParams = [],
+        bool $csrfProtection = true
     ) {
         $response = $this->requestAndAssertOkAndHtml(
             $client,
@@ -656,9 +612,9 @@ abstract class WebTestCase extends BaseWebTestCase
             $formName = $this->getFormNameFromResponse($response);
         }
 
-        $token = $this->getCsrfTokenValueFromResponse($response, $formName);
-
-        $formParams['_token'] = $token;
+        if ($csrfProtection) {
+            $formParams['_token'] = $this->getCsrfTokenValueFromResponse($response, $formName);
+        }
 
         return $this->request(
             $client,
@@ -672,32 +628,77 @@ abstract class WebTestCase extends BaseWebTestCase
 
     /**
      * @param Client $client
+     * @param string $method
      * @param string $route
-     * @param array $routeParams
-     * @param string $formName
-     * @param array $formParams
-     * @param array $fileParams
+     * @param array  $parameters
+     * @return null|Response
      */
-    protected function requestGetAndPostAndAssertOkAndHtml(
+    protected function requestAndAssertOkAndHtml(
         Client $client,
+        string $method = 'GET',
         string $route,
-        array $routeParams = [],
-        string $formName = 'form',
-        array $formParams = [],
-        array $fileParams = []
+        array $routeParameters = [],
+        array $parameters = []
     ) {
-        $response = $this->requestGetAndPost($client, $route, $routeParams, $formName, $formParams, $fileParams);
-        $this->assertOk($response);
+        $response = $this->requestAndAssertOk($client, $method, $route, $routeParameters, $parameters);
         $this->assertResponseIsHtml($response);
+
+        return $response;
+    }
+
+    /**
+     * @param Response $response
+     */
+    protected function assertResponseIsHtml(Response $response)
+    {
+        $this->assertResponseContentType($response, 'text/html; charset=UTF-8');
+    }
+
+    /**
+     * @param Response $response
+     * @param string   $name
+     * @return bool|string
+     */
+    protected function getFormNameFromResponse(Response $response, $name = 'form')
+    {
+        $regex = sprintf('#\"[\w\d\-]+\[\_token\]#', $name);
+        preg_match($regex, $response->getContent(), $matches);
+        if (!$matches) {
+            return '';
+        }
+
+        return str_replace(['[_token]', '"'], ['', ''], $matches[0]);
+    }
+
+    /**
+     * @param Response $response
+     * @param string   $name
+     * @return bool|string
+     */
+    protected function getCsrfTokenValueFromResponse(Response $response, $name = 'form')
+    {
+        $regex = sprintf('#%s\[\_token\]\"[\s\w\=\-\"]+value\=\"[\w\d\-]+\"#', $name);
+        preg_match($regex, $response->getContent(), $match1);
+        if (!$match1) {
+            return '';
+        }
+
+        $regex = '#value\=\"[\w\d\-]+\"#';
+        preg_match($regex, $match1[0], $match2);
+        if (!$match2) {
+            return '';
+        }
+
+        return str_replace(['value=', '"'], ['', ''], $match2[0]);
     }
 
     /**
      * @param Client $client
      * @param string $route
-     * @param array $routeParams
+     * @param array  $routeParams
      * @param string $formName
-     * @param array $formParams
-     * @param array $fileParams
+     * @param array  $formParams
+     * @param array  $fileParams
      */
     protected function requestGetAndPostAndAssertRedirect(
         Client $client,
@@ -705,82 +706,30 @@ abstract class WebTestCase extends BaseWebTestCase
         array $routeParams = [],
         string $formName = 'form',
         array $formParams = [],
-        array $fileParams = []
+        array $fileParams = [],
+        bool $csrfProtection = true
     ) {
-        $response = $this->requestGetAndPost($client, $route, $routeParams, $formName, $formParams, $fileParams);
-        $this->assertRedirect($response);
-    }
-
-    /**
-     * @param Client $client
-     * @param string $route
-     * @param array $routeParams
-     * @param string $formName
-     * @param array $formParams
-     * @param array $fileParams
-     */
-    protected function requestGetAndPostAndAssertRedirectSonata(
-        Client $client,
-        string $route,
-        array $routeParams = [],
-        string $formName = 'form',
-        array $formParams = [],
-        array $fileParams = []
-    ) {
-        $response = $this->requestGetAndPostSonata($client, $route, $routeParams, $formName, $formParams, $fileParams);
-        $this->assertRedirect($response);
-    }
-
-    /**
-     * @param Client $client
-     * @param string $route
-     * @param array $routeParams
-     * @param string $formName
-     * @param array $formParams
-     * @param array $fileParams
-     * @return null|Response
-     */
-    protected function requestGetAndPostSonata(
-        Client $client,
-        string $route,
-        array $routeParams = [],
-        string $formName = 'form',
-        array $formParams = [],
-        array $fileParams = []
-    ) {
-        $response = $this->requestAndAssertOkAndHtml(
+        $response = $this->requestGetAndPost(
             $client,
-            'GET',
-            $route,
-            $routeParams
-        );
-        if ($formName == '') {
-            $formName = $this->getFormNameFromResponse($response);
-        }
-
-        $token = $this->getCsrfTokenValueFromResponse($response, $formName);
-
-        $formParams['_token'] = $token;
-
-        return $this->request(
-            $client,
-            'POST',
             $route,
             $routeParams,
-            [$formName => $formParams, 'uniqid' => $formName, 'btn_create_and_edit' => ''],
-            $fileParams
+            $formName,
+            $formParams,
+            $fileParams,
+            $csrfProtection
         );
+        $this->assertRedirect($response);
     }
 
     /**
      * @param Client $client
      * @param string $route
-     * @param array $routeParams
+     * @param array  $routeParams
      * @param string $formName
-     * @param array $formParams
-     * @param array $fileParams
+     * @param array  $formParams
+     * @param array  $fileParams
      */
-    protected function requestGetPostAndDownloadCsv(
+    protected function requestGetPostAndDownload(
         Client $client,
         string $route,
         array $routeParams = [],
@@ -811,9 +760,16 @@ abstract class WebTestCase extends BaseWebTestCase
             $fileParams
         );
         ob_end_clean();
-        $this->assertResponseIsCsv($response);
 
         return $response;
+    }
+
+    /**
+     * @param Response $response
+     */
+    protected function assertResponseIsCsv(Response $response)
+    {
+        $this->assertResponseContentType($response, 'text/csv; charset=utf-8');
     }
 
     protected function tearDown()
