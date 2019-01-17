@@ -229,7 +229,7 @@ abstract class WebTestCase extends BaseWebTestCase
             '"%s:%d" at "%s"',
             $file,
             $first['line'],
-            $now->format('d/m/Y H:i')
+            $now->format('d/m/Y H:i:s')
         );
         if (strlen($name) > $limit) {
             return trim(substr(sprintf('...%s', $name), -$limit));
