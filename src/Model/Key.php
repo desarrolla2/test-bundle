@@ -15,5 +15,6 @@ namespace Desarrolla2\TestBundle\Model;
 
 abstract class Key
 {
-    const CACHE = 'test_executed_routes';
+    const CLASSES = 'desarrolla2.statistic.executed_classes';
+    const ROUTES = 'desarrolla2.statistic.executed_routes';
 }
