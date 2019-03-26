@@ -136,7 +136,7 @@ execute each one.
 4. In the file `desarrolla2.classes.profile.txt` the detail of the tests executed, and how long it took to execute each one
 
 ```txt
-╰─$ cat var/logs/desarrolla2.routes.pending.txt
+╰─$ cat var/logs/desarrolla2.classes.profile.txt
 PublicBundle\Functional\Api\ProvinceTest: 241ms
  - testIndex: 241ms
 AppBundle\Functional\FosUserTest: 438ms
