@@ -197,7 +197,7 @@ abstract class WebTestCase extends BaseWebTestCase
      */
     protected function getCacheTtl()
     {
-        return 300;
+        return 60;
     }
 
     /**
@@ -808,13 +808,19 @@ abstract class WebTestCase extends BaseWebTestCase
      */
     private function addTimeToExecutedClasses(): void
     {
+        $time = round(microtime(true) - $this->startAt, 3);
         $cache = $this->getCache();
         $executed = $cache->get($this->getCacheKeyForClasses());
         if (!$executed) {
             $executed = [];
         }
         $key = get_called_class();
-        $executed[$key] = round(microtime(true) - $this->startAt, 3);
+        if (!array_key_exists($key, $executed)) {
+            $executed[$key] = ['time' => 0, 'name' => $key, 'tests' => []];
+        }
+        $executed[$key]['time'] += $time;
+        $executed[$key]['tests'][] = ['name' => $this->getName(), 'time' => $time];
+
         $cache->set($this->getCacheKeyForClasses(), $executed, $this->getCacheTtl());
     }
 

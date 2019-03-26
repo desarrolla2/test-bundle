@@ -82,11 +82,80 @@ The bundle also brings the command `php bin / console phpunit: statistics --env 
 you:
 
 1. A summary of the time taken to execute the tests, how many requests were made, average per request and number of 
-routes not tested
+routes not tested.
+
+```txt
+╰─$ php bin/console phpunit:statistics --env=test
++--------------------------+----------+------------+
+| name                     | number   | percentage |
++--------------------------+----------+------------+
+| Total execution time     | 1m23s    |            |
+| Total requests           | 848      |            |
+| Average time per request | 200ms    |            |
+| Total routes             | 538      |            |
+| Tested routes            | 470      | (87.36%)   |
+| Pending routes           | 68       | (12.64%)   |
++--------------------------+----------+------------+
+```
+
 2. In the file `desarrolla2.routes.tested.txt` the detail of all the requests that were made, and how long it took to 
 execute each one.
+
+```txt
+╰─$ cat var/logs/desarrolla2.routes.tested.txt
+001. GET _api.activity.index ~0.152
+   - /admin/api/activity/1 0.152
+002. GET _api.contact.email ~0.168
+   - /admin/api/contact/115148/email/daniel@devtia.com 0.168
+003. GET _api.contact.phone ~0.128
+   - /admin/api/contact/115148/phone/653965048 0.128
+004. GET _api.service.index ~0.125
+   - /admin/api/service/ 0.125
+005. GET _api.sidebar.toggle ~0.091
+   - /admin/api/sidebar/toggle 0.091
+006. GET _app.activity.index ~2.533
+[...]
+```
+
 3. In the file `desarrolla2.tested.pending.txt` the detail of the routes that have not been tested.
+
+```txt
+╰─$ cat var/logs/desarrolla2.routes.pending.txt
+01. GET  _app.report.billing.payment
+02. POST _app.transport.locator.view
+03. GET  _app_admin_billing_invoice_batch
+04. GET  _app_admin_contact_batch
+05. GET  _app_admin_file_file_list
+06. GET  _app_admin_participant_batch
+07. GET  _public.contract.back
+08. GET  _public.file.download
+09. GET  _public.proposal.view
+10. GET  _student.default.switch
+[...]
+```
 4. In the file `desarrolla2.classes.profile.txt` the detail of the tests executed, and how long it took to execute each one
+
+```txt
+╰─$ cat var/logs/desarrolla2.routes.pending.txt
+PublicBundle\Functional\Api\ProvinceTest: 241ms
+ - testIndex: 241ms
+AppBundle\Functional\FosUserTest: 438ms
+ - testDefault: 438ms
+AppBundle\Functional\Admin\MailTest: 499ms
+ - testDefault: 499ms
+AppBundle\Functional\Admin\ConfigurationTest: 712ms
+ - testDefault: 712ms
+AppBundle\Functional\DefaultTest: 729ms
+ - testIndex: 729ms
+AppBundle\Functional\Admin\LanguageTest: 759ms
+ - testDefault: 759ms
+AppBundle\Functional\File\FileTest: 775ms
+ - testCategory: 775ms
+PublicBundle\Functional\Api\HealthCheckTest: 779ms
+ - testIndex: 156ms
+ - testSwagger: 623ms
+[...]
+```
 
 ## Contact
 

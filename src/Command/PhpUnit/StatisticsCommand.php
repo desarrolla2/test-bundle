@@ -83,7 +83,7 @@ class StatisticsCommand extends ContainerAwareCommand
             unset($routes[$key]);
         }
 
-        $filesystem->remove($this->getFileForTestedRoutes());
+        $filesystem->remove($this->getFileForPendingRoutes());
         $filesystem->touch($this->getFileForPendingRoutes());
         foreach ($routes as $route) {
             ++$pendingRoutes;
@@ -103,17 +103,28 @@ class StatisticsCommand extends ContainerAwareCommand
         $filesystem->touch($this->getFileForClassesProfile());
 
         $classes = $this->getClasses();
-        foreach ($classes as $class => $executionTime) {
+        foreach ($classes as $class) {
             $filesystem->appendToFile(
                 $this->getFileForClassesProfile(),
                 sprintf(
                     '%s: %s%c',
-                    $class,
-                    $human->time($executionTime),
+                    $class['name'],
+                    $human->time($class['time']),
                     10
                 )
             );
-            $totalTime += $executionTime;
+            foreach ($class['tests'] as $case) {
+                $filesystem->appendToFile(
+                    $this->getFileForClassesProfile(),
+                    sprintf(
+                        ' - %s: %s%c',
+                        $case['name'],
+                        $human->time($case['time']),
+                        10
+                    )
+                );
+            }
+            $totalTime += $class['time'];
         }
 
         $testedPercentage = 100 * $testedRoutes / $totalRoutes;
@@ -193,8 +204,16 @@ class StatisticsCommand extends ContainerAwareCommand
         if (!$classes) {
             return [];
         }
+        usort(
+            $classes,
+            function ($item1, $item2) {
+                if ($item1['time'] == $item2['time']) {
+                    return 0;
+                }
 
-        asort($classes);
+                return ($item1['time'] < $item2['time']) ? -1 : 1;
+            }
+        );
 
         return $classes;
     }
