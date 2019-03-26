@@ -74,7 +74,7 @@ brings
 
 ## Reporting
 
-Each time a request is executed, the result of the response is stored in `develop2.request.latest`. 
+Each time a request is executed, the result of the response is stored in `desarrolla2.request.latest`. 
 If you have phpunit configured to stop when it fails, here you will have in HTML format the response of the request 
 that failed, which will allow you to find the error more quickly.
 
@@ -83,10 +83,10 @@ you:
 
 1. A summary of the time taken to execute the tests, how many requests were made, average per request and number of 
 routes not tested
-2. In the file `develop2.routes.tested.txt` the detail of all the requests that were made, and how long it took to 
+2. In the file `desarrolla2.routes.tested.txt` the detail of all the requests that were made, and how long it took to 
 execute each one.
-3. In the file `develop2.tested.pending.txt` the detail of the routes that have not been tested.
-4. In the file `develop2.classes.profile.txt` the detail of the tests executed, and how long it took to execute each one
+3. In the file `desarrolla2.tested.pending.txt` the detail of the routes that have not been tested.
+4. In the file `desarrolla2.classes.profile.txt` the detail of the tests executed, and how long it took to execute each one
 
 ## Contact
 
