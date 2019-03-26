@@ -197,7 +197,7 @@ abstract class WebTestCase extends BaseWebTestCase
      */
     protected function getCacheTtl()
     {
-        return 300;
+        return 60;
     }
 
     /**
