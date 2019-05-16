@@ -243,6 +243,17 @@ abstract class WebTestCase extends BaseWebTestCase
         return str_replace(['value=', '"'], ['', ''], $match2[0]);
     }
 
+
+    /**
+     * @return \Doctrine\ORM\EntityManager|object
+     */
+    protected function get($serviceName)
+    {
+        $container = $this->getContainer();
+
+        return $container->get('doctrine.orm.entity_manager');
+    }
+
     /**
      * @return \Doctrine\ORM\EntityManager|object
      */
