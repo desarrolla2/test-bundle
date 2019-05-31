@@ -169,6 +169,18 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
+     * @param string $serviceName
+     * @return object
+     * @throws \Exception
+     */
+    protected function get(string $serviceName)
+    {
+        $container = $this->getContainer();
+
+        return $container->get($serviceName);
+    }
+
+    /**
      * @return Cache
      */
     protected function getCache()
@@ -241,17 +253,6 @@ abstract class WebTestCase extends BaseWebTestCase
         }
 
         return str_replace(['value=', '"'], ['', ''], $match2[0]);
-    }
-
-
-    /**
-     * @return \Doctrine\ORM\EntityManager|object
-     */
-    protected function get($serviceName)
-    {
-        $container = $this->getContainer();
-
-        return $container->get('doctrine.orm.entity_manager');
     }
 
     /**
