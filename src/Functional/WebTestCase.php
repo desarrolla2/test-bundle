@@ -488,6 +488,38 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
+     * @param string $file
+     * @param bool   $ignoreFirstLine
+     *
+     * @return array
+     */
+    protected function getDataFromCSVFile(string $file, bool $ignoreFirstLine = true)
+    {
+        $rows = [];
+        if (false !== ($handle = fopen($file, 'r'))) {
+            $idx = 0;
+            while (false !== ($data = fgetcsv($handle, null, ','))) {
+                ++$idx;
+                if ($ignoreFirstLine && 1 == $idx) {
+                    continue;
+                }
+                foreach ($data as $key => $value) {
+                    $value = trim($value);
+                    $value = preg_replace('/[\x00-\x1F\x7F\xA0]/u', '', $value);
+                    $data[$key] = $value;
+                }
+                if (!strlen(implode('', $data))) {
+                    continue;
+                }
+                $rows[] = $data;
+            }
+            fclose($handle);
+        }
+
+        return $rows;
+    }
+
+    /**
      * @param $entity
      * @throws \Doctrine\ORM\OptimisticLockException
      */
