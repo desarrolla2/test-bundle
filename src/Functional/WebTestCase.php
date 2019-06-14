@@ -244,6 +244,9 @@ abstract class WebTestCase extends BaseWebTestCase
         string $token = '_token'
     ) {
         $regex = sprintf('#%s\[\%s\]\"[\s\w\=\-\"]+value\=\"[\w\d\-]+\"#', $name, $token);
+        if ($name == '') {
+            $regex = sprintf('#\"%s\"[\s\w\=\-\"]+value\=\"[\w\d\-]+\"#', $token);
+        }
         preg_match($regex, $response->getContent(), $match1);
         if (!$match1) {
             return '';
