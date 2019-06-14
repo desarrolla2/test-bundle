@@ -238,9 +238,12 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param string   $name
      * @return bool|string
      */
-    protected function getCsrfTokenValueFromResponse(Response $response, $name = 'form')
-    {
-        $regex = sprintf('#%s\[\_token\]\"[\s\w\=\-\"]+value\=\"[\w\d\-]+\"#', $name);
+    protected function getCsrfTokenValueFromResponse(
+        Response $response,
+        string $name = 'form',
+        string $token = '_token'
+    ) {
+        $regex = sprintf('#%s\[\%s\]\"[\s\w\=\-\"]+value\=\"[\w\d\-]+\"#', $name, $token);
         preg_match($regex, $response->getContent(), $match1);
         if (!$match1) {
             return '';
@@ -253,6 +256,38 @@ abstract class WebTestCase extends BaseWebTestCase
         }
 
         return str_replace(['value=', '"'], ['', ''], $match2[0]);
+    }
+
+    /**
+     * @param string $file
+     * @param bool   $ignoreFirstLine
+     *
+     * @return array
+     */
+    protected function getDataFromCSVFile(string $file, bool $ignoreFirstLine = true)
+    {
+        $rows = [];
+        if (false !== ($handle = fopen($file, 'r'))) {
+            $idx = 0;
+            while (false !== ($data = fgetcsv($handle, null, ','))) {
+                ++$idx;
+                if ($ignoreFirstLine && 1 == $idx) {
+                    continue;
+                }
+                foreach ($data as $key => $value) {
+                    $value = trim($value);
+                    $value = preg_replace('/[\x00-\x1F\x7F\xA0]/u', '', $value);
+                    $data[$key] = $value;
+                }
+                if (!strlen(implode('', $data))) {
+                    continue;
+                }
+                $rows[] = $data;
+            }
+            fclose($handle);
+        }
+
+        return $rows;
     }
 
     /**
@@ -485,38 +520,6 @@ abstract class WebTestCase extends BaseWebTestCase
         $client->getCookieJar()->set($cookie);
 
         return $user;
-    }
-
-    /**
-     * @param string $file
-     * @param bool   $ignoreFirstLine
-     *
-     * @return array
-     */
-    protected function getDataFromCSVFile(string $file, bool $ignoreFirstLine = true)
-    {
-        $rows = [];
-        if (false !== ($handle = fopen($file, 'r'))) {
-            $idx = 0;
-            while (false !== ($data = fgetcsv($handle, null, ','))) {
-                ++$idx;
-                if ($ignoreFirstLine && 1 == $idx) {
-                    continue;
-                }
-                foreach ($data as $key => $value) {
-                    $value = trim($value);
-                    $value = preg_replace('/[\x00-\x1F\x7F\xA0]/u', '', $value);
-                    $data[$key] = $value;
-                }
-                if (!strlen(implode('', $data))) {
-                    continue;
-                }
-                $rows[] = $data;
-            }
-            fclose($handle);
-        }
-
-        return $rows;
     }
 
     /**
