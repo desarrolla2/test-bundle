@@ -361,6 +361,18 @@ abstract class WebTestCase extends BaseWebTestCase
         );
     }
 
+    protected function getOneHtmlAttribute(Response $response, string $attribute)
+    {
+        $matches = [];
+        preg_match(sprintf('#%s="\d+"#', $attribute), $response->getContent(), $matches);
+        if (!count($matches)) {
+            return false;
+        }
+        $match = array_values($matches) [0];
+
+        return str_replace([$attribute, '=', '"'], '', $match);
+    }
+
     /**
      * @return ConsoleOutput
      */
