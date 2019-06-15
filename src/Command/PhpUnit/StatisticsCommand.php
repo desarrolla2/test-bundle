@@ -325,6 +325,9 @@ class StatisticsCommand extends ContainerAwareCommand
             $methods = $route->getMethods();
             if (!count($methods)) {
                 $methods = ['GET'];
+                if (substr($routeName, -6) == '_batch') {
+                    $methods = ['POST'];
+                };
             }
             foreach ($methods as $method) {
                 $routes[$this->getHash($method, $routeName)] = ['route' => $routeName, 'method' => $method];
