@@ -47,8 +47,12 @@ class StatisticsCommand extends ContainerAwareCommand
         $totalRoutes = count($routes);
         $numberOfDigits = strlen((string)$totalRoutes);
 
-        $filesystem->remove($this->getFileForTestedRoutes());
-        $filesystem->touch($this->getFileForTestedRoutes());
+        $filesystem->remove($this->getFileForRoutesPerformance());
+        $filesystem->touch($this->getFileForRoutesPerformance());
+
+        $filesystem->remove($this->getFileForRoutesTested());
+        $filesystem->touch($this->getFileForRoutesTested());
+
         foreach ($requested as $route) {
             ++$testedRoutes;
             $key = $this->getHash($route['method'], $route['route']);
@@ -60,10 +64,20 @@ class StatisticsCommand extends ContainerAwareCommand
             if (!$count) {
                 continue;
             }
+            $filesystem->appendToFile(
+                $this->getFileForRoutesTested(),
+                sprintf(
+                    '%s. %s %s%c',
+                    str_pad($testedRoutes, $numberOfDigits, '0', STR_PAD_LEFT),
+                    str_pad($route['method'], 4, ' '),
+                    $route['route'],
+                    10
+                )
+            );
             $totalTime += $route['time'];
             $average = round($route['time'] / $count, 3);
             $filesystem->appendToFile(
-                $this->getFileForTestedRoutes(),
+                $this->getFileForRoutesPerformance(),
                 sprintf(
                     '%s. %s %s ~%s%c',
                     str_pad($testedRoutes, $numberOfDigits, '0', STR_PAD_LEFT),
@@ -76,19 +90,19 @@ class StatisticsCommand extends ContainerAwareCommand
             foreach ($route['paths'] as $path) {
                 ++$totalRequest;
                 $filesystem->appendToFile(
-                    $this->getFileForTestedRoutes(),
+                    $this->getFileForRoutesPerformance(),
                     sprintf('   - %s %s%c', $path['path'], number_format($path['time'], 3), 10)
                 );
             }
             unset($routes[$key]);
         }
 
-        $filesystem->remove($this->getFileForPendingRoutes());
-        $filesystem->touch($this->getFileForPendingRoutes());
+        $filesystem->remove($this->getFileForRoutesPending());
+        $filesystem->touch($this->getFileForRoutesPending());
         foreach ($routes as $route) {
             ++$pendingRoutes;
             $filesystem->appendToFile(
-                $this->getFileForPendingRoutes(),
+                $this->getFileForRoutesPending(),
                 sprintf(
                     '%s. %s %s%c',
                     str_pad($pendingRoutes + $testedRoutes, $numberOfDigits, '0', STR_PAD_LEFT),
@@ -246,7 +260,7 @@ class StatisticsCommand extends ContainerAwareCommand
     /**
      * @return string
      */
-    private function getFileForPendingRoutes(): string
+    private function getFileForRoutesPending(): string
     {
         return sprintf('%s/desarrolla2.routes.pending.txt', $this->getLogDirectory());
     }
@@ -254,7 +268,15 @@ class StatisticsCommand extends ContainerAwareCommand
     /**
      * @return string
      */
-    private function getFileForTestedRoutes(): string
+    private function getFileForRoutesPerformance(): string
+    {
+        return sprintf('%s/desarrolla2.routes.performance.txt', $this->getLogDirectory());
+    }
+
+    /**
+     * @return string
+     */
+    private function getFileForRoutesTested(): string
     {
         return sprintf('%s/desarrolla2.routes.tested.txt', $this->getLogDirectory());
     }
