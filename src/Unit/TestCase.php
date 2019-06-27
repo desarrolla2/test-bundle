@@ -35,7 +35,7 @@ class TestCase extends BaseTestCase
         return $this->prophet;
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         if ($this->prophet) {
             $this->prophet = new \Prophecy\Prophet();

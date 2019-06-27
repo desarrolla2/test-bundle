@@ -846,13 +846,13 @@ abstract class WebTestCase extends BaseWebTestCase
         return $response;
     }
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->initializeProfile();
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         $this->addTimeToExecutedClasses();
 
