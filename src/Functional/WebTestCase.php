@@ -456,7 +456,11 @@ abstract class WebTestCase extends BaseWebTestCase
      */
     protected function getRandomPngFile()
     {
-        return realpath(sprintf('%s/../../data/file.png', __DIR__));
+        $source = realpath(sprintf('%s/../../data/file.png', __DIR__));
+        $target = sprintf('%s/%s.png', sys_get_temp_dir(), uniqid('desarrolla2_test_bundle_', true));
+        exec(sprintf('cp %s %s', $source, $target));
+
+        return $target;
     }
 
     /**
