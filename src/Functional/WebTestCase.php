@@ -486,6 +486,11 @@ abstract class WebTestCase extends BaseWebTestCase
         return $name;
     }
 
+    protected function getRandonPhone(): int
+    {
+        return rand(111111111, 99999999);
+    }
+
     /**
      * @return User
      */
