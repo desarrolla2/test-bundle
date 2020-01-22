@@ -486,7 +486,7 @@ abstract class WebTestCase extends BaseWebTestCase
         return $name;
     }
 
-    protected function getRandomZimCode(): int
+    protected function getRandomZipCode(): int
     {
         return rand(11111, 99999);
     }
