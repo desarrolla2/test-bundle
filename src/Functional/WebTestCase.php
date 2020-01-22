@@ -450,6 +450,11 @@ abstract class WebTestCase extends BaseWebTestCase
         return $target;
     }
 
+    protected function getRandomPhone(): string
+    {
+        return sprintf('653%s', rand(100000, 999999));
+    }
+
     /**
      * @param $client
      * @return bool|string
@@ -486,14 +491,9 @@ abstract class WebTestCase extends BaseWebTestCase
         return $name;
     }
 
-    protected function getRandomZipCode(): int
+    protected function getRandomZipCode(): string
     {
-        return rand(11111, 99999);
-    }
-
-    protected function getRandonPhone(): int
-    {
-        return rand(111111111, 99999999);
+        return sprintf('28%s', rand(100, 999));
     }
 
     /**
