@@ -693,7 +693,6 @@ abstract class WebTestCase extends BaseWebTestCase
 
         return $response;
     }
-
     /**
      * @param Client $client
      * @param string $route
@@ -713,6 +712,21 @@ abstract class WebTestCase extends BaseWebTestCase
         );
         ob_end_clean();
 
+        return $response;
+    }
+
+    /**
+     * @param Client $client
+     * @param string $route
+     * @param array  $routeParams
+     */
+    protected function requestDownloadAndAssertOk(
+        Client $client,
+        string $route,
+        array $routeParams = []
+    ) {
+        $response = $this->requestDownload($client, $route, $routeParams);
+        $this->assertOk($response);
         return $response;
     }
 
