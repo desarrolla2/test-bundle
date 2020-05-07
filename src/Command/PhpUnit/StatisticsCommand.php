@@ -302,6 +302,7 @@ class StatisticsCommand extends ContainerAwareCommand
             'fos_user_[\w\_]',
             'fos_js_routing_[\w\_]',
             '_twig_error_test',
+            '_async_event.[\w\.]',
         ];
     }
 

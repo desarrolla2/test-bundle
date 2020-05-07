@@ -458,6 +458,11 @@ abstract class WebTestCase extends BaseWebTestCase
         return $target;
     }
 
+    protected function getRandomPhone(): string
+    {
+        return sprintf('653%s', rand(100000, 999999));
+    }
+
     /**
      * @param $client
      * @return bool|string
@@ -492,6 +497,11 @@ abstract class WebTestCase extends BaseWebTestCase
         }
 
         return $name;
+    }
+
+    protected function getRandomZipCode(): string
+    {
+        return sprintf('28%s', rand(100, 999));
     }
 
     /**
@@ -710,7 +720,6 @@ abstract class WebTestCase extends BaseWebTestCase
 
         return $response;
     }
-
     /**
      * @param Client $client
      * @param string $route
@@ -730,6 +739,21 @@ abstract class WebTestCase extends BaseWebTestCase
         );
         ob_end_clean();
 
+        return $response;
+    }
+
+    /**
+     * @param Client $client
+     * @param string $route
+     * @param array  $routeParams
+     */
+    protected function requestDownloadAndAssertOk(
+        Client $client,
+        string $route,
+        array $routeParams = []
+    ) {
+        $response = $this->requestDownload($client, $route, $routeParams);
+        $this->assertOk($response);
         return $response;
     }
 
