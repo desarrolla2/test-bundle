@@ -88,6 +88,14 @@ abstract class WebTestCase extends BaseWebTestCase
 
     /**
      * @param Response $response
+     */
+    protected function assertAccessDenied(Response $response)
+    {
+        $this->assertStatus($response, Response::HTTP_FORBIDDEN);
+    }
+
+    /**
+     * @param Response $response
      * @param string   $isContained
      */
     protected function assertResponseContains(Response $response, string $isContained)
@@ -599,6 +607,25 @@ abstract class WebTestCase extends BaseWebTestCase
     ) {
         $response = $this->request($client, $method, $route, $parameters);
         $this->assertStatus($response, Response::HTTP_NOT_FOUND, $route);
+
+        return $response;
+    }
+
+    /**
+     * @param Client $client
+     * @param string $method
+     * @param string $route
+     * @param array  $parameters
+     * @return null|Response
+     */
+    protected function requestAndAssertAccessDenied(
+        Client $client,
+        string $method = 'GET',
+        string $route,
+        array $parameters = []
+    ) {
+        $response = $this->request($client, $method, $route, $parameters);
+        $this->assertAccessDenied($response);
 
         return $response;
     }
