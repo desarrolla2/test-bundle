@@ -73,6 +73,14 @@ abstract class WebTestCase extends BaseWebTestCase
     /**
      * @param Response $response
      */
+    protected function assertAccessDenied(Response $response)
+    {
+        $this->assertStatus($response, Response::HTTP_FORBIDDEN);
+    }
+
+    /**
+     * @param Response $response
+     */
     protected function assertOk(Response $response)
     {
         $this->assertStatus($response, Response::HTTP_OK);
@@ -84,14 +92,6 @@ abstract class WebTestCase extends BaseWebTestCase
     protected function assertRedirect(Response $response)
     {
         $this->assertStatus($response, Response::HTTP_FOUND);
-    }
-
-    /**
-     * @param Response $response
-     */
-    protected function assertAccessDenied(Response $response)
-    {
-        $this->assertStatus($response, Response::HTTP_FORBIDDEN);
     }
 
     /**
@@ -355,6 +355,16 @@ abstract class WebTestCase extends BaseWebTestCase
         return 'AppKernel';
     }
 
+    protected function getLastCreatedEntity(string $entityName)
+    {
+        $em = $this->getEntityManager();
+
+        return $em->getRepository($entityName)->findOneBy(
+            [],
+            ['createdAt' => 'DESC']
+        );
+    }
+
     /**
      * @param string $entityName
      * @return null|object
@@ -463,10 +473,6 @@ abstract class WebTestCase extends BaseWebTestCase
         return sprintf('653%s', rand(100000, 999999));
     }
 
-    /**
-     * @param $client
-     * @return bool|string
-     */
     protected function getRandomPngFile()
     {
         $source = realpath(sprintf('%s/../../data/file.png', __DIR__));
@@ -476,10 +482,6 @@ abstract class WebTestCase extends BaseWebTestCase
         return $target;
     }
 
-    /**
-     * @param int $limit
-     * @return string
-     */
     protected function getRandomString(int $limit = 75): string
     {
         $now = new \DateTime();
@@ -609,14 +611,14 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param array  $parameters
      * @return null|Response
      */
-    protected function requestAndAssertNotFound(
+    protected function requestAndAssertAccessDenied(
         Client $client,
         string $method = 'GET',
         string $route,
         array $parameters = []
     ) {
         $response = $this->request($client, $method, $route, $parameters);
-        $this->assertStatus($response, Response::HTTP_NOT_FOUND, $route);
+        $this->assertAccessDenied($response);
 
         return $response;
     }
@@ -628,14 +630,14 @@ abstract class WebTestCase extends BaseWebTestCase
      * @param array  $parameters
      * @return null|Response
      */
-    protected function requestAndAssertAccessDenied(
+    protected function requestAndAssertNotFound(
         Client $client,
         string $method = 'GET',
         string $route,
         array $parameters = []
     ) {
         $response = $this->request($client, $method, $route, $parameters);
-        $this->assertAccessDenied($response);
+        $this->assertStatus($response, Response::HTTP_NOT_FOUND, $route);
 
         return $response;
     }
@@ -720,6 +722,7 @@ abstract class WebTestCase extends BaseWebTestCase
 
         return $response;
     }
+
     /**
      * @param Client $client
      * @param string $route
@@ -754,6 +757,7 @@ abstract class WebTestCase extends BaseWebTestCase
     ) {
         $response = $this->requestDownload($client, $route, $routeParams);
         $this->assertOk($response);
+
         return $response;
     }
 
