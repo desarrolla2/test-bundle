@@ -13,12 +13,13 @@
 
 namespace Desarrolla2\TestBundle\Functional;
 
-use Desarrolla2\Cache\Cache;
 use Desarrolla2\TestBundle\Model\Key;
 use Symfony\Bundle\FrameworkBundle\Client;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase as BaseWebTestCase;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Response;
@@ -43,57 +44,6 @@ abstract class WebTestCase extends BaseWebTestCase
 
     /** @var array */
     private $lastest = ['route' => null, 'method' => null, 'path' => null];
-
-
-    protected function getCountObjectsBy(string $class, array $params = []): int
-    {
-        $em = $this->container->get('doctrine.orm.entity_manager');
-
-        return $em->getRepository($class)->count($params);
-    }
-
-    protected function getImageFile()
-    {
-        return ['originalImageFile' => ['file' => new UploadedFile($this->getRandomPngFile(), '1.png', 'image/png'),],];
-    }
-
-    protected function getObjectsBy(
-        string $class,
-        array $params = [],
-        array $order = ['updatedAt' => 'DESC'],
-        ?int $limit = null
-    ): array {
-        $em = $this->getEntityManager();
-
-        $objects = $em->getRepository($class)->findBy(
-            $params,
-            $order,
-            $limit
-        );
-
-        if (count($objects) == 0) {
-            $this->markTestSkipped();
-        }
-
-        return $objects;
-    }
-
-    protected function getPdfFile()
-    {
-        return ['file' => ['fileFile' => ['file' => new UploadedFile($this->getRandomPdfFile(), 'file.pdf', 'application/pdf'),],],];
-    }
-
-    protected function getSingleObjectBy(string $class, array $params = [], array $order = ['updatedAt' => 'DESC', 'id' => 'DESC'], bool $skipIfNotFound = true)
-    {
-        $em = $this->container->get('doctrine.orm.entity_manager');
-        $object = $em->getRepository($class)->findOneBy($params, $order);
-
-        if ($skipIfNotFound && !$object instanceof $class) {
-            $this->markTestSkipped();
-        }
-
-        return $object;
-    }
 
     protected function addToRequested(string $method, string $route, string $path, float $time)
     {
@@ -175,6 +125,17 @@ abstract class WebTestCase extends BaseWebTestCase
         $this->assertSame($status, $response->getStatusCode(), $this->getFailedMessage());
     }
 
+    protected function executeCommand(string $commandName): string
+    {
+        $kernel = static::createKernel();
+        $application = new Application($kernel);
+        $command = $application->find($commandName);
+        $tester = new CommandTester($command);
+        $tester->execute(['command' => $command->getName(),]);
+
+        return $tester->getDisplay();
+    }
+
     protected function generateRoute($routeName, array $params = [])
     {
         return $this->getContainer()->get('router')->generate($routeName, $params);
@@ -222,11 +183,15 @@ abstract class WebTestCase extends BaseWebTestCase
         return $this->container;
     }
 
-    protected function getCsrfTokenValueFromResponse(
-        Response $response,
-        string $name = 'form',
-        string $token = '_token'
-    ) {
+    protected function getCountObjectsBy(string $class, array $params = []): int
+    {
+        $em = $this->container->get('doctrine.orm.entity_manager');
+
+        return $em->getRepository($class)->count($params);
+    }
+
+    protected function getCsrfTokenValueFromResponse(Response $response, string $name = 'form', string $token = '_token')
+    {
         $regex = sprintf('#%s\[\%s\]\"[\s\w\=\-\"]+value\=\"[\w\d\-]+\"#', $name, $token);
         if ($name == '') {
             $regex = sprintf('#\"%s\"[\s\w\=\-\"]+value\=\"[\w\d\-]+\"#', $token);
@@ -304,6 +269,11 @@ abstract class WebTestCase extends BaseWebTestCase
         return str_replace(['[_token]', '"'], ['', ''], $matches[0]);
     }
 
+    protected function getImageFile()
+    {
+        return ['originalImageFile' => ['file' => new UploadedFile($this->getRandomPngFile(), '1.png', 'image/png'),],];
+    }
+
     protected static function getKernelClass()
     {
         require_once __DIR__.'/../../../../../app/AppKernel.php';
@@ -329,6 +299,23 @@ abstract class WebTestCase extends BaseWebTestCase
             [],
             ['updatedAt' => 'DESC']
         );
+    }
+
+    protected function getObjectsBy(string $class, array $params = [], array $order = ['updatedAt' => 'DESC'], ?int $limit = null): array
+    {
+        $em = $this->getEntityManager();
+
+        $objects = $em->getRepository($class)->findBy(
+            $params,
+            $order,
+            $limit
+        );
+
+        if (count($objects) == 0) {
+            $this->markTestSkipped();
+        }
+
+        return $objects;
     }
 
     protected function getOneHtmlAttribute(Response $response, string $attribute)
@@ -371,6 +358,11 @@ abstract class WebTestCase extends BaseWebTestCase
         $container = $this->getContainer();
 
         return $container->getParameter($parameter);
+    }
+
+    protected function getPdfFile()
+    {
+        return ['file' => ['fileFile' => ['file' => new UploadedFile($this->getRandomPdfFile(), 'file.pdf', 'application/pdf'),],],];
     }
 
     protected function getRandomEmail()
@@ -432,6 +424,18 @@ abstract class WebTestCase extends BaseWebTestCase
         return sprintf('28%s', rand(100, 999));
     }
 
+    protected function getSingleObjectBy(string $class, array $params = [], array $order = ['updatedAt' => 'DESC', 'id' => 'DESC'], bool $skipIfNotFound = true)
+    {
+        $em = $this->container->get('doctrine.orm.entity_manager');
+        $object = $em->getRepository($class)->findOneBy($params, $order);
+
+        if ($skipIfNotFound && !$object instanceof $class) {
+            $this->markTestSkipped();
+        }
+
+        return $object;
+    }
+
     protected function getUser(string $email)
     {
         $em = self::getContainer()->get('doctrine.orm.entity_manager');
@@ -449,14 +453,7 @@ abstract class WebTestCase extends BaseWebTestCase
 
     protected function handleResponse(Response $response)
     {
-        file_put_contents(
-            sprintf(
-                '%s.%s',
-                $this->getOutputFileName(),
-                $this->getOutputFileExtension($response)
-            ),
-            $response->getContent()
-        );
+        file_put_contents(sprintf('%s.%s', $this->getOutputFileName(), $this->getOutputFileExtension($response)), $response->getContent());
     }
 
     protected function logIn(Client $client, string $email, array $roles = [])
@@ -503,87 +500,56 @@ abstract class WebTestCase extends BaseWebTestCase
         return $response;
     }
 
-    protected function requestAndAssertAccessDenied(
-        Client $client,
-        string $method = 'GET',
-        string $route,
-        array $parameters = []
-    ) {
+    protected function requestAndAssertAccessDenied(Client $client, string $method = 'GET', string $route, array $parameters = [])
+    {
         $response = $this->request($client, $method, $route, $parameters);
         $this->assertAccessDenied($response);
 
         return $response;
     }
 
-    protected function requestAndAssertNotFound(
-        Client $client,
-        string $method = 'GET',
-        string $route,
-        array $parameters = []
-    ) {
+    protected function requestAndAssertNotFound(Client $client, string $method = 'GET', string $route, array $parameters = [])
+    {
         $response = $this->request($client, $method, $route, $parameters);
         $this->assertStatus($response, Response::HTTP_NOT_FOUND, $route);
 
         return $response;
     }
 
-    protected function requestAndAssertOk(
-        Client $client,
-        string $method = 'GET',
-        string $route,
-        array $routeParameters = [],
-        array $parameters = []
-    ) {
+    protected function requestAndAssertOk(Client $client, string $method = 'GET', string $route, array $routeParameters = [], array $parameters = [])
+    {
         $response = $this->request($client, $method, $route, $routeParameters, $parameters);
         $this->assertOk($response);
 
         return $response;
     }
 
-    protected function requestAndAssertOkAndHtml(
-        Client $client,
-        string $method = 'GET',
-        string $route,
-        array $routeParameters = [],
-        array $parameters = []
-    ) {
+    protected function requestAndAssertOkAndHtml(Client $client, string $method = 'GET', string $route, array $routeParameters = [], array $parameters = [])
+    {
         $response = $this->requestAndAssertOk($client, $method, $route, $routeParameters, $parameters);
         $this->assertResponseIsHtml($response);
 
         return $response;
     }
 
-    protected function requestAndAssertOkAndJson(
-        Client $client,
-        string $method = 'GET',
-        string $route,
-        array $routeParameters = [],
-        array $parameters = []
-    ) {
+    protected function requestAndAssertOkAndJson(Client $client, string $method = 'GET', string $route, array $routeParameters = [], array $parameters = [])
+    {
         $response = $this->requestAndAssertOk($client, $method, $route, $routeParameters, $parameters);
         $this->assertResponseIsJson($response);
 
         return $response;
     }
 
-    protected function requestAndAssertRedirect(
-        Client $client,
-        string $method = 'GET',
-        string $route,
-        array $routeParameters = [],
-        array $parameters = []
-    ) {
+    protected function requestAndAssertRedirect(Client $client, string $method = 'GET', string $route, array $routeParameters = [], array $parameters = [])
+    {
         $response = $this->request($client, $method, $route, $routeParameters, $parameters);
         $this->assertRedirect($response);
 
         return $response;
     }
 
-    protected function requestDownload(
-        Client $client,
-        string $route,
-        array $routeParams = []
-    ) {
+    protected function requestDownload(Client $client, string $route, array $routeParams = [])
+    {
         ob_start();
         $response = $this->request(
             $client,
@@ -596,26 +562,16 @@ abstract class WebTestCase extends BaseWebTestCase
         return $response;
     }
 
-    protected function requestDownloadAndAssertOk(
-        Client $client,
-        string $route,
-        array $routeParams = []
-    ) {
+    protected function requestDownloadAndAssertOk(Client $client, string $route, array $routeParams = [])
+    {
         $response = $this->requestDownload($client, $route, $routeParams);
         $this->assertOk($response);
 
         return $response;
     }
 
-    protected function requestGetAndPost(
-        Client $client,
-        string $route,
-        array $routeParams = [],
-        string $formName = 'form',
-        array $formParams = [],
-        array $fileParams = [],
-        bool $csrfProtection = true
-    ) {
+    protected function requestGetAndPost(Client $client, string $route, array $routeParams = [], string $formName = 'form', array $formParams = [], array $fileParams = [], bool $csrfProtection = true)
+    {
         $response = $this->requestAndAssertOkAndHtml(
             $client,
             'GET',
