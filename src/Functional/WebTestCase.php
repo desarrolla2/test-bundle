@@ -281,22 +281,22 @@ abstract class WebTestCase extends BaseWebTestCase
         return 'AppKernel';
     }
 
-    protected function getLastCreatedEntity(string $entityName)
+    protected function getLastCreatedEntity(string $entityName, array $criteria = [])
     {
         $em = $this->getEntityManager();
 
         return $em->getRepository($entityName)->findOneBy(
-            [],
+            $criteria,
             ['createdAt' => 'DESC']
         );
     }
 
-    protected function getLastUpdatedEntity(string $entityName)
+    protected function getLastUpdatedEntity(string $entityName, array $criteria = [])
     {
         $em = $this->getEntityManager();
 
         return $em->getRepository($entityName)->findOneBy(
-            [],
+            $criteria,
             ['updatedAt' => 'DESC']
         );
     }
