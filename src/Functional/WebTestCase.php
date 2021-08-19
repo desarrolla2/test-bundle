@@ -570,8 +570,15 @@ abstract class WebTestCase extends BaseWebTestCase
         return $response;
     }
 
-    protected function requestGetAndPath(Client $client, string $route, array $routeParams = [], string $formName = 'form', array $formParams = [], array $fileParams = [], bool $csrfProtection = true)
-    {
+    protected function requestGetAndPatch(
+        Client $client,
+        string $route,
+        array $routeParams = [],
+        string $formName = 'form',
+        array $formParams = [],
+        array $fileParams = [],
+        bool $csrfProtection = true
+    ) {
         $response = $this->requestAndAssertOkAndHtml(
             $client,
             'GET',
@@ -588,7 +595,7 @@ abstract class WebTestCase extends BaseWebTestCase
 
         return $this->request(
             $client,
-            'PATH',
+            'PATCH',
             $route,
             $routeParams,
             [$formName => $formParams],
@@ -644,7 +651,7 @@ abstract class WebTestCase extends BaseWebTestCase
         $this->assertResponseIsHtml($response);
     }
 
-    protected function requestGetAndPathAndAssertRedirect(
+    protected function requestGetAndPatchAndAssertRedirect(
         Client $client,
         string $route,
         array $routeParams = [],
@@ -653,7 +660,7 @@ abstract class WebTestCase extends BaseWebTestCase
         array $fileParams = [],
         bool $csrfProtection = true
     ) {
-        $response = $this->requestGetAndPost(
+        $response = $this->requestGetAndPatch(
             $client,
             $route,
             $routeParams,
