@@ -570,6 +570,32 @@ abstract class WebTestCase extends BaseWebTestCase
         return $response;
     }
 
+    protected function requestGetAndPath(Client $client, string $route, array $routeParams = [], string $formName = 'form', array $formParams = [], array $fileParams = [], bool $csrfProtection = true)
+    {
+        $response = $this->requestAndAssertOkAndHtml(
+            $client,
+            'GET',
+            $route,
+            $routeParams
+        );
+        if ($formName == '') {
+            $formName = $this->getFormNameFromResponse($response);
+        }
+
+        if ($csrfProtection) {
+            $formParams['_token'] = $this->getCsrfTokenValueFromResponse($response, $formName);
+        }
+
+        return $this->request(
+            $client,
+            'PATH',
+            $route,
+            $routeParams,
+            [$formName => $formParams],
+            $fileParams
+        );
+    }
+
     protected function requestGetAndPost(Client $client, string $route, array $routeParams = [], string $formName = 'form', array $formParams = [], array $fileParams = [], bool $csrfProtection = true)
     {
         $response = $this->requestAndAssertOkAndHtml(
@@ -616,6 +642,27 @@ abstract class WebTestCase extends BaseWebTestCase
         );
         $this->assertOk($response);
         $this->assertResponseIsHtml($response);
+    }
+
+    protected function requestGetAndPathAndAssertRedirect(
+        Client $client,
+        string $route,
+        array $routeParams = [],
+        string $formName = 'form',
+        array $formParams = [],
+        array $fileParams = [],
+        bool $csrfProtection = true
+    ) {
+        $response = $this->requestGetAndPost(
+            $client,
+            $route,
+            $routeParams,
+            $formName,
+            $formParams,
+            $fileParams,
+            $csrfProtection
+        );
+        $this->assertRedirect($response);
     }
 
     protected function requestGetAndPostAndAssertRedirect(
