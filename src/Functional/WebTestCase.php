@@ -532,7 +532,7 @@ abstract class WebTestCase extends BaseWebTestCase
         $this->assertRedirect($response);
     }
 
-    protected function requestGetPostAndDownload(
+    protected function requestGetAndPostAndDownload(
         Client $client,
         string $route,
         array $routeParams = [],
