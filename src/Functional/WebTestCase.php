@@ -42,13 +42,13 @@ abstract class WebTestCase extends BaseWebTestCase
     /** @var array */
     private $lastest = ['route' => null, 'method' => null, 'path' => null];
 
-    protected function executeCommand(string $commandName): string
+    protected function executeCommand(string $commandName, array $options = []): string
     {
         $kernel = static::createKernel();
         $application = new Application($kernel);
         $command = $application->find($commandName);
         $tester = new CommandTester($command);
-        $tester->execute(['command' => $command->getName(),]);
+        $tester->execute(array_merge($options, ['command' => $command->getName()]));
 
         return $tester->getDisplay();
     }
