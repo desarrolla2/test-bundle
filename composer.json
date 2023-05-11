@@ -15,6 +15,7 @@
         }
     },
     "require": {
+        "php": ">=8.0",
         "symfony/framework-bundle": "^5.0|^6.0",
         "desarrolla2/cache": "*",
         "desarrolla2/timer": "*"
