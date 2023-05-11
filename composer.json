@@ -1,22 +1,22 @@
 {
-  "name": "desarrolla2/test-bundle",
-  "description": "This bundle provides test utilities for symfony2",
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "Daniel González Cerviño",
-      "email": "daniel@desarrolla2.com"
+    "name": "desarrolla2/test-bundle",
+    "description": "This bundle provides test utilities for symfony2",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Daniel González Cerviño",
+            "email": "daniel@desarrolla2.com"
+        }
+    ],
+    "type": "symfony-bundle",
+    "autoload": {
+        "psr-4": {
+            "Desarrolla2\\TestBundle\\": "src/"
+        }
+    },
+    "require": {
+        "symfony/framework-bundle": "^5.0|^6.0",
+        "desarrolla2/cache": "*",
+        "desarrolla2/timer": "*"
     }
-  ],
-  "type": "symfony-bundle",
-  "autoload": {
-    "psr-4": {
-      "Desarrolla2\\TestBundle\\": "src/"
-    }
-  },
-  "require": {
-    "symfony/framework-bundle": "^4.0",
-    "desarrolla2/cache": "*",
-    "desarrolla2/timer": "*"
-  }
 }
